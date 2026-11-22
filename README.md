@@ -26,13 +26,26 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
    npx skills add Tencent/WeChatReading -g
    ```
 
-2. Set your WeChat Reading API key:
+2. Install this project's skills globally (e.g. `write-reading-reflection`, which turns your notes and spoken reflections into a 读书心得):
 
    ```bash
-   export WEREAD_API_KEY=<你的apikey>
+   npx skills add cedar-ai-project/personal-librarian -g
+   ```
+
+3. Set your WeChat Reading API key:
+
+   ```bash
+   export WEREAD_API_KEY=<your_api_key>
    ```
 
    Add the same line to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist it across sessions.
+
+4. Skills are installed as a snapshot — changes to the source repository are not synced automatically. To update installed skills after the repository changes (make sure your changes are pushed to GitHub first):
+
+   ```bash
+   npx skills update -g                    # update all global skills
+   npx skills update write-reading-reflection -g # or update a single skill
+   ```
 
 ## Repository layout
 
@@ -42,7 +55,12 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
 | `reflections/` | Reading reflections (心得). One subdirectory per book |
 | `profile/` | Personal reading taste profile and analysis |
 | `recommendations/` | Book recommendations for you |
+| `skills/` | Agent skills bundled with this project (e.g. `write-reading-reflection`) |
 
 ## License
 
 [Apache License 2.0](LICENSE)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=cedar-ai-project/personal-librarian&type=Timeline)](https://www.star-history.com/#cedar-ai-project/personal-librarian&Timeline)

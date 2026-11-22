@@ -26,13 +26,26 @@
    npx skills add Tencent/WeChatReading -g
    ```
 
-2. 设置微信读书 API Key：
+2. 全局安装本项目自带的 skill（如 `write-reading-reflection`，可根据划线与想法和口述感悟自动生成读书心得）：
 
    ```bash
-   export WEREAD_API_KEY=<你的apikey>
+   npx skills add cedar-ai-project/personal-librarian -g
+   ```
+
+3. 设置微信读书 API Key：
+
+   ```bash
+   export WEREAD_API_KEY=<your_api_key>
    ```
 
    把同一行加入你的 shell 配置文件（`~/.zshrc` 或 `~/.bashrc`），以便跨会话持久生效。
+
+4. skill 安装的是源仓库的一份快照，仓库后续更新不会自动同步。更新已安装的 skill：
+
+   ```bash
+   npx skills update -g                    # 更新所有全局 skill
+   npx skills update write-reading-reflection -g # 或只更新指定 skill
+   ```
 
 ## 仓库结构
 
@@ -42,6 +55,7 @@
 | `reflections/` | 读书心得。每本书一个子目录 |
 | `profile/` | 个人读书喜好画像与分析 |
 | `recommendations/` | 为你推荐的书单 |
+| `skills/` | 本项目自带的 agent skill（如 `write-reading-reflection`） |
 
 ## 许可证
 
