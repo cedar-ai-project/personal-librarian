@@ -162,106 +162,158 @@
   ],
   "books": {
     "MBTI：潜能开发和人性攻略": {
+      "startedAt": 1718446430,
+      "finishedAt": null,
       "lastReadAt": 1784342397,
       "finished": false
     },
     "Maven实战": {
+      "startedAt": 1718726357,
+      "finishedAt": 1718794427,
       "lastReadAt": 1718785979,
       "finished": true
     },
     "主场": {
+      "startedAt": 1783608367,
+      "finishedAt": null,
       "lastReadAt": 1792672504,
       "finished": false
     },
     "内向者优势": {
+      "startedAt": 1707743243,
+      "finishedAt": 1755147432,
       "lastReadAt": 1755397700,
       "finished": true
     },
     "图解人工智能": {
+      "startedAt": null,
+      "finishedAt": null,
       "lastReadAt": 1696955001,
       "finished": false
     },
     "大话设计模式": {
+      "startedAt": 1697715259,
+      "finishedAt": 1701102804,
       "lastReadAt": 1701102825,
       "finished": true
     },
     "富爸爸穷爸爸": {
+      "startedAt": 1715566522,
+      "finishedAt": 1716264603,
       "lastReadAt": 1717863430,
       "finished": true
     },
     "小岛经济学": {
+      "startedAt": 1715861427,
+      "finishedAt": 1729950373,
       "lastReadAt": 1715861427,
       "finished": true
     },
     "小王子（中英文对照版）": {
+      "startedAt": 1701536673,
+      "finishedAt": 1716051919,
       "lastReadAt": 1707391348,
       "finished": true
     },
     "弗洛伊德与为什么鸭": {
+      "startedAt": null,
+      "finishedAt": null,
       "lastReadAt": 1696954989,
       "finished": false
     },
     "悉达多": {
+      "startedAt": 1742315797,
+      "finishedAt": 1747453731,
       "lastReadAt": 1747665958,
       "finished": true
     },
     "我不是教你诈": {
+      "startedAt": null,
+      "finishedAt": null,
       "lastReadAt": 1712136669,
       "finished": false
     },
     "投资第1课": {
+      "startedAt": 1783327102,
+      "finishedAt": 1795317865,
       "lastReadAt": 1795318241,
       "finished": true
     },
     "抗老生活": {
+      "startedAt": 1728013467,
+      "finishedAt": 1748791880,
       "lastReadAt": 1748856481,
       "finished": true
     },
     "早起的奇迹": {
+      "startedAt": 1719542887,
+      "finishedAt": 1720062371,
       "lastReadAt": 1729950319,
       "finished": true
     },
     "海绵阅读法：如何吸收一本书的精华": {
+      "startedAt": 1703915973,
+      "finishedAt": 1704618976,
       "lastReadAt": 1709225027,
       "finished": true
     },
     "深度学习推荐系统": {
+      "startedAt": null,
+      "finishedAt": null,
       "lastReadAt": 1709695258,
       "finished": false
     },
     "渠道管理就这样做": {
+      "startedAt": null,
+      "finishedAt": null,
       "lastReadAt": 1697178227,
       "finished": false
     },
     "睡眠革命：新版": {
+      "startedAt": 1720408014,
+      "finishedAt": 1721100859,
       "lastReadAt": 1722489652,
       "finished": true
     },
     "纳瓦尔宝典": {
+      "startedAt": 1769495142,
+      "finishedAt": 1781537376,
       "lastReadAt": 1769495142,
       "finished": true
     },
     "蛤蟆先生去看心理医生": {
+      "startedAt": 1701217101,
+      "finishedAt": 1737267495,
       "lastReadAt": 1701217101,
       "finished": true
     },
     "被讨厌的勇气": {
+      "startedAt": 1694102147,
+      "finishedAt": 1726930174,
       "lastReadAt": 1726930123,
       "finished": true
     },
     "解忧杂货店": {
+      "startedAt": 1746938996,
+      "finishedAt": 1746939054,
       "lastReadAt": 1746938996,
       "finished": true
     },
     "认知觉醒：开启自我改变的原动力": {
+      "startedAt": 1694102129,
+      "finishedAt": 1718687177,
       "lastReadAt": 1718726147,
       "finished": true
     },
     "费曼学习法": {
+      "startedAt": 1694102367,
+      "finishedAt": 1709009282,
       "lastReadAt": 1718167159,
       "finished": true
     },
     "长安的荔枝（同名影视原著）": {
+      "startedAt": 1737559252,
+      "finishedAt": 1738375913,
       "lastReadAt": 1738501158,
       "finished": true
     }

@@ -197,9 +197,12 @@ function main() {
     const hasReflection = fs.existsSync(reflectionFile)
 
     const meta = {
+      ...readJson(path.join(notesDir, 'meta.json')),
       ...readJson(path.join(reflectionDir, 'meta.json')),
       ...(hasNotes ? parseNotesHeader(fs.readFileSync(notesFile, 'utf8')) : {}),
     }
+    const times = stats.books?.[name] ?? {}
+    const day = (seconds) => (seconds ? formatDate(seconds) : null)
     const reflectionMeta = hasReflection ? parseReflectionHeader(fs.readFileSync(reflectionFile, 'utf8')) : {}
 
     const data = {}
@@ -228,16 +231,22 @@ function main() {
       intro: reflectionMeta.intro ?? null,
       hasNotes,
       hasReflection,
+      // Finished: has a reflection, or marked with "finished": true in meta.json.
+      finished: hasReflection || meta.finished === true,
       extras,
       cover: Boolean(cover),
       // Last read on WeChat Reading ("YYYY-MM-DD"), or "YYYY-MM" from meta.json for books read elsewhere.
-      readAt: meta.readAt ?? (stats.books?.[name] ? formatDate(stats.books[name].lastReadAt) : null),
+      readAt: meta.readAt ?? day(times.lastReadAt),
+      startedAt: day(times.startedAt) ?? meta.readAt ?? null,
+      finishedAt: day(times.finishedAt) ?? meta.readAt ?? null,
       updatedAt: updatedAt(name),
     }
   })
 
-  // Finished books (with a reflection) first, then most recently updated.
-  books.sort((a, b) => Number(b.hasReflection) - Number(a.hasReflection) || b.updatedAt - a.updatedAt)
+  // Finished books first, most recently finished first; books still being read by when they were started.
+  // Dates are "YYYY-MM-DD" or "YYYY-MM", so they compare as strings.
+  const shelfDate = (book) => (book.finished ? book.finishedAt : book.startedAt) ?? book.readAt ?? ''
+  books.sort((a, b) => Number(b.finished) - Number(a.finished) || shelfDate(b).localeCompare(shelfDate(a)) || b.updatedAt - a.updatedAt)
   fs.writeFileSync(OUT_LIST, JSON.stringify(books, null, 2) + '\n')
   console.log(`${books.length} books -> ${path.relative(SITE, OUT_LIST)}, ${path.relative(SITE, OUT_DATA)}/`)
 }

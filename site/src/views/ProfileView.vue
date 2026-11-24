@@ -47,19 +47,25 @@ const maxTop = Math.max(...topBooks.map((t) => t.readTime), 1)
 
 const keywords = computed(() => [...(persona?.keywords ?? [])])
 
-// Footprint: every book on the shelf grouped by the year it was last read, oldest year first.
+// Footprint date: when a finished book was finished, or when a book still being read was last read.
+function footprintDate(book: Book): string | null {
+	return book.finished ? book.finishedAt ?? book.readAt : book.readAt
+}
+
+// Footprint: every book on the shelf grouped by its footprint year, oldest year first.
 const footprint = computed(() => {
-	const byYear = new Map<number, Book[]>()
+	const byYear = new Map<number, { book: Book; date: string }[]>()
 	for (const book of books) {
-		if (!book.readAt) continue
-		const year = Number(book.readAt.slice(0, 4))
-		byYear.set(year, [...(byYear.get(year) ?? []), book])
+		const date = footprintDate(book)
+		if (!date) continue
+		const year = Number(date.slice(0, 4))
+		byYear.set(year, [...(byYear.get(year) ?? []), { book, date }])
 	}
 	return [...byYear.entries()]
 		.sort(([a], [b]) => a - b)
 		.map(([year, list]) => ({
 			year,
-			books: list.sort((a, b) => (a.readAt! < b.readAt! ? -1 : 1)),
+			books: list.sort((a, b) => a.date.localeCompare(b.date)),
 			html: persona?.timeline.find((t) => t.year === year)?.html ?? '',
 		}))
 })
@@ -165,14 +171,14 @@ const quoteGroups = computed(() =>
 					<div v-if="year.html" class="year-text" v-html="year.html"></div>
 					<div class="year-books">
 						<router-link
-						v-for="book in year.books"
+						v-for="{ book, date } in year.books"
 						:key="book.id"
 						:to="{ name: 'book', params: { title: book.title } }"
 						class="year-book"
 						:title="book.title"
 						>
 							<BookCover :book="book" />
-							<span class="year-book-date text-muted">{{ book.readAt!.slice(5) || book.readAt }}</span>
+							<span class="year-book-date text-muted">{{ date.slice(5) || date }}<template v-if="!book.finished"> · 在读</template></span>
 						</router-link>
 					</div>
 				</div>

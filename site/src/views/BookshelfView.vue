@@ -12,20 +12,21 @@ const stats = {
 	highlights: books.reduce((sum, book) => sum + (book.highlights ?? 0), 0),
 	ideas: books.reduce((sum, book) => sum + (book.ideas ?? 0), 0),
 	reflections: books.filter((book) => book.hasReflection).length,
+	finished: books.filter((book) => book.finished).length,
 }
 
-// A book with a reflection counts as finished; one with only notes is still being read.
+// A book counts as finished when it has a reflection or is marked finished in its meta.json.
 const filters: { value: ShelfFilter; title: string; count: number }[] = [
 	{ value: 'all', title: '全部', count: books.length },
-	{ value: 'finished', title: '读完', count: stats.reflections },
-	{ value: 'reading', title: '在读', count: books.length - stats.reflections },
+	{ value: 'finished', title: '读完', count: stats.finished },
+	{ value: 'reading', title: '在读', count: books.length - stats.finished },
 ]
 
 const visibleBooks = computed(() => {
 	const keyword = query.value.trim().toLowerCase()
 	return books.filter((book) => {
-		if (filter.value === 'finished' && !book.hasReflection) return false
-		if (filter.value === 'reading' && book.hasReflection) return false
+		if (filter.value === 'finished' && !book.finished) return false
+		if (filter.value === 'reading' && book.finished) return false
 		if (!keyword) return true
 		return [book.title, book.author ?? ''].some((text) => text.toLowerCase().includes(keyword))
 	})
@@ -88,7 +89,7 @@ async function copyWereadId() {
 				<div class="book-title">{{ book.title }}</div>
 				<div class="book-author text-muted">{{ book.author ?? ' ' }}</div>
 				<div class="book-tags">
-					<span v-if="book.hasReflection" class="tag tag-finished">读完</span>
+					<span v-if="book.finished" class="tag tag-finished">读完</span>
 					<span v-else class="tag tag-reading">在读</span>
 					<span v-if="book.highlights !== null" class="tag">划线 {{ book.highlights }}</span>
 				</div>

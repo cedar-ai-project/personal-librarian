@@ -9,9 +9,12 @@ export interface Book {
   intro: string | null
   hasNotes: boolean
   hasReflection: boolean
+  finished: boolean
   extras: { key: string; title: string }[]
   cover: boolean
   readAt: string | null
+  startedAt: string | null
+  finishedAt: string | null
   updatedAt: number
 }
 

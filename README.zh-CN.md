@@ -62,7 +62,7 @@
 
 在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法、读书心得和阅读画像。
 
-网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "...", "readAt": "YYYY-MM" }`）中补充作者、微信读书链接，以及阅读时间（用于不在微信读书上读的书）。「阅读画像」页面由 `profile/` 生成。
+网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "...", "readAt": "YYYY-MM" }`）中补充作者、微信读书链接，以及阅读时间（用于不在微信读书上读的书）。有读书心得的书会显示为「读完」；若想在写心得之前就标记为读完，可以添加 `notes/<书名>/meta.json`，内容为 `{ "finished": true }`。「阅读画像」页面由 `profile/` 生成。
 
 本地预览（需要 Node.js 20+，以及安装了 `pip install fonttools brotli` 的 Python 3）：
 

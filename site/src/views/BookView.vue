@@ -91,8 +91,8 @@ onBeforeUnmount(() => {
 				<p v-if="book.subtitle" class="book-subtitle">{{ book.subtitle }}</p>
 				<p v-if="book.author" class="text-muted">{{ book.author }}</p>
 				<div class="header-meta">
-					<span :class="['tag', book.hasReflection ? 'tag-finished' : 'tag-reading']">
-						{{ book.hasReflection ? '读完' : '在读' }}
+					<span :class="['tag', book.finished ? 'tag-finished' : 'tag-reading']">
+						{{ book.finished ? '读完' : '在读' }}
 					</span>
 					<span v-if="book.highlights !== null" class="text-muted">划线 {{ book.highlights }} · 想法 {{ book.ideas }}</span>
 				</div>

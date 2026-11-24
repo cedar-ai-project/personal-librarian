@@ -5,7 +5,7 @@ Run from the personal-librarian repository root:
     python3 <skill-dir>/scripts/fetch_reading_stats.py
 
 Requires the WEREAD_API_KEY environment variable. Only aggregated statistics are written;
-book lists (top books, last-read times) are limited to books that exist under notes/ or reflections/.
+book lists (top books, start/finish/last-read times) are limited to books that exist under notes/ or reflections/.
 """
 
 import datetime
@@ -115,21 +115,27 @@ def main() -> None:
         if name:
             top_books.append({"title": name, "readTime": item.get("readTime", 0), "tags": item.get("tags", [])})
 
-    last_read = {}
+    # Per-book reading times: bookId from the shelf, or (for books removed from it) via the reader link.
+    shelf_books = {}
     for book in shelf.get("books", []):
         name = match(book, books)
-        if name and book.get("readUpdateTime"):
-            last_read[name] = {"lastReadAt": book["readUpdateTime"], "finished": book.get("finishReading") == 1}
-
-    # Books missing from the shelf (e.g. removed later): fall back to their reading progress.
+        if name:
+            shelf_books[name] = book
     notebooks = call("/user/notebooks", count=100).get("books", [])
+    last_read = {}
     for name, link in books.items():
-        if name in last_read or not link:
-            continue
-        book_id = book_id_by_link(name, link, notebooks)
+        shelf_book = shelf_books.get(name, {})
+        book_id = shelf_book.get("bookId") or (link and book_id_by_link(name, link, notebooks))
         progress = (call("/book/getprogress", bookId=book_id).get("book") or {}) if book_id else {}
-        if progress.get("updateTime"):
-            last_read[name] = {"lastReadAt": progress["updateTime"], "finished": bool(progress.get("finishTime"))}
+        last_read_at = shelf_book.get("readUpdateTime") or progress.get("updateTime")
+        if not last_read_at:
+            continue
+        last_read[name] = {
+            "startedAt": progress.get("startReadingTime") or None,
+            "finishedAt": progress.get("finishTime") or None,
+            "lastReadAt": last_read_at,
+            "finished": shelf_book.get("finishReading") == 1 or bool(progress.get("finishTime")),
+        }
 
     read_stat = overall.get("readStat", [])
     data = {
@@ -158,9 +164,9 @@ def main() -> None:
     OUTPUT.parent.mkdir(exist_ok=True)
     OUTPUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     missing = sorted(set(books) - set(last_read))
-    print(f"Wrote {OUTPUT}: {len(top_books)} top books, last-read time for {len(last_read)}/{len(books)} books")
+    print(f"Wrote {OUTPUT}: {len(top_books)} top books, reading times for {len(last_read)}/{len(books)} books")
     if missing:
-        print("No last-read time from WeChat Reading for: " + "、".join(missing) + " (set \"readAt\": \"YYYY-MM\" in reflections/<book>/meta.json)")
+        print("No reading time from WeChat Reading for: " + "、".join(missing) + " (set \"readAt\": \"YYYY-MM\" in reflections/<book>/meta.json)")
 
 
 if __name__ == "__main__":
