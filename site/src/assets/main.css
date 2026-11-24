@@ -1,0 +1,193 @@
+@import './base.css';
+
+/* Theme colors, driven by <html data-theme> (see composables/useThemeMode.ts). */
+:root {
+	--font-family: 'Yozai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+	--c-bg: #ffffff;
+	--c-bg-soft: #f6f7f9;
+	--c-text: #000000;
+	--c-text-muted: rgba(0, 0, 0, 0.6);
+	--c-link: #2a9fd6;
+	--c-link-hover-bg: hsla(200, 70%, 50%, 0.15);
+	--c-accent: #66ccff;
+	--c-card-border: rgba(0, 0, 0, 0.15);
+	--c-quote-bg: #f4f9fc;
+	--c-idea-bg: #fff6e0;
+	--c-idea-border: #f0b429;
+	--c-shadow: rgba(0, 0, 0, 0.15);
+	color-scheme: light;
+}
+
+html[data-theme='dark'] {
+	--c-bg: #16181d;
+	--c-bg-soft: #1e2128;
+	--c-text: #f2f2f2;
+	--c-text-muted: rgba(255, 255, 255, 0.6);
+	--c-link: #6cc8f0;
+	--c-link-hover-bg: hsla(200, 70%, 60%, 0.2);
+	--c-card-border: rgba(255, 255, 255, 0.2);
+	--c-quote-bg: #1b2530;
+	--c-idea-bg: #2d2617;
+	--c-idea-border: #c9952a;
+	--c-shadow: rgba(0, 0, 0, 0.5);
+	color-scheme: dark;
+}
+
+body {
+	background-color: var(--c-bg);
+	color: var(--c-text);
+	font-family: var(--font-family);
+}
+
+/* Vuetify sets its own font-family on these; keep icon fonts untouched. */
+.v-application,
+.v-btn,
+.v-tab,
+.v-chip,
+.v-field,
+.v-card-title,
+.v-card-text,
+.v-list-item-title,
+.v-snackbar {
+	font-family: var(--font-family) !important;
+}
+
+.v-btn,
+.v-tab,
+.v-chip {
+	letter-spacing: normal !important;
+	text-transform: none !important;
+}
+
+a {
+	text-decoration: none;
+	color: var(--c-link);
+	transition: 0.4s;
+}
+
+@media (hover: hover) {
+	.markdown-body a:hover {
+		background-color: var(--c-link-hover-bg);
+	}
+}
+
+.page {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 24px 16px 48px;
+}
+
+.text-muted {
+	color: var(--c-text-muted);
+}
+
+/* Rendered notes and reflections (scripts/build-data.mjs). */
+.markdown-body {
+	font-size: 16px;
+	line-height: 1.85;
+	overflow-wrap: anywhere;
+}
+
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+	scroll-margin-top: 80px;
+	font-weight: bold;
+	line-height: 1.4;
+}
+
+.markdown-body h2 {
+	font-size: 22px;
+	margin: 36px 0 16px;
+	padding-bottom: 6px;
+	border-bottom: 1px dashed var(--c-accent);
+}
+
+.markdown-body h2:first-child {
+	margin-top: 0;
+}
+
+.markdown-body h3 {
+	font-size: 18px;
+	margin: 28px 0 12px;
+}
+
+.markdown-body h4 {
+	font-size: 16px;
+	margin: 20px 0 10px;
+}
+
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol {
+	margin: 0 0 14px;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+	padding-left: 1.5em;
+}
+
+.markdown-body strong {
+	font-weight: bold;
+}
+
+.markdown-body blockquote {
+	margin: 0 0 16px;
+	padding: 12px 18px;
+	background: var(--c-quote-bg);
+	border-left: 4px solid var(--c-accent);
+	border-radius: 0 8px 8px 0;
+}
+
+.markdown-body blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+.markdown-body .idea {
+	padding: 8px 12px;
+	background: var(--c-idea-bg);
+	border-left: 3px solid var(--c-idea-border);
+	border-radius: 0 6px 6px 0;
+}
+
+.markdown-body img {
+	max-width: 100%;
+	border-radius: 6px;
+}
+
+.markdown-body table {
+	border-collapse: collapse;
+	margin: 0 0 16px;
+	display: block;
+	overflow-x: auto;
+}
+
+.markdown-body th,
+.markdown-body td {
+	border: 1px solid var(--c-card-border);
+	padding: 6px 12px;
+}
+
+.markdown-body hr {
+	border: none;
+	border-top: 1px dashed var(--c-card-border);
+	margin: 24px 0;
+}
+
+.markdown-body code {
+	padding: 1px 5px;
+	border-radius: 4px;
+	background: var(--c-bg-soft);
+	font-size: 0.9em;
+}
+
+.markdown-body li.task {
+	list-style: none;
+	margin-left: -1.3em;
+}
+
+.markdown-body input[type='checkbox'] {
+	margin-right: 6px;
+	accent-color: var(--c-link);
+}

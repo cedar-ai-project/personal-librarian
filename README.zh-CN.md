@@ -56,6 +56,21 @@
 | `profile/` | 个人读书喜好画像与分析 |
 | `recommendations/` | 为你推荐的书单 |
 | `skills/` | 本项目自带的 agent skill（如 `write-reading-reflection`） |
+| `site/` | GitHub Pages 网站源码 |
+
+## 在线浏览
+
+在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法和读书心得。
+
+网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "..." }`）中补充作者和微信读书链接。
+
+本地预览（需要 Node.js 20+，以及安装了 `pip install fonttools brotli` 的 Python 3）：
+
+```bash
+cd site
+npm install
+npm run build && npm run preview   # 或先执行一次 `npm run font`，再 `npm run dev`
+```
 
 ## 许可证
 

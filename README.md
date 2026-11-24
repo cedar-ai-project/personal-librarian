@@ -56,6 +56,21 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
 | `profile/` | Personal reading taste profile and analysis |
 | `recommendations/` | Book recommendations for you |
 | `skills/` | Agent skills bundled with this project (e.g. `write-reading-reflection`) |
+| `site/` | Source of the GitHub Pages website |
+
+## Website
+
+Browse the bookshelf, highlights, ideas, and reflections online at <https://cedar-ai-project.github.io/personal-librarian/>.
+
+The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/` and `reflections/` and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "..." }`) supplies the author and WeChat Reading link.
+
+To preview locally (Node.js 20+, Python 3 with `pip install fonttools brotli`):
+
+```bash
+cd site
+npm install
+npm run build && npm run preview   # or `npm run font` once, then `npm run dev`
+```
 
 ## License
 
