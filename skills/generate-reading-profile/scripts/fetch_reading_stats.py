@@ -166,7 +166,7 @@ def main() -> None:
     missing = sorted(set(books) - set(last_read))
     print(f"Wrote {OUTPUT}: {len(top_books)} top books, reading times for {len(last_read)}/{len(books)} books")
     if missing:
-        print("No reading time from WeChat Reading for: " + "、".join(missing) + " (set \"readAt\": \"YYYY-MM\" in reflections/<book>/meta.json)")
+        print("No reading time from WeChat Reading for: " + "、".join(missing) + " (set \"readAt\": \"YYYY-MM-DD\" in reflections/<book>/meta.json)")
 
 
 if __name__ == "__main__":

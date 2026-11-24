@@ -300,7 +300,7 @@ function main() {
       finished: hasReflection || meta.finished === true,
       extras,
       cover: Boolean(cover),
-      // Last read on WeChat Reading ("YYYY-MM-DD"), or "YYYY-MM" from meta.json for books read elsewhere.
+      // Last read on WeChat Reading ("YYYY-MM-DD"), or "YYYY-MM-DD" / "YYYY-MM" from meta.json for books read elsewhere.
       readAt: meta.readAt ?? day(times.lastReadAt),
       startedAt: day(times.startedAt) ?? meta.readAt ?? null,
       finishedAt: day(times.finishedAt) ?? meta.readAt ?? null,

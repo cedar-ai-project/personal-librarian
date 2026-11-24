@@ -22,7 +22,7 @@ description: 根据微信读书阅读统计、划线与想法和读书心得，�
 python3 <本 skill 目录>/scripts/fetch_reading_stats.py
 ```
 
-脚本只写入汇总数据；排行和阅读时间只保留 `notes/`、`reflections/` 中存在的书。若脚本提示某些书没有阅读时间（例如纸质书），询问用户大概的阅读年月，写入 `reflections/<书名>/meta.json` 的 `"readAt": "YYYY-MM"` 字段。
+脚本只写入汇总数据；排行和阅读时间只保留 `notes/`、`reflections/` 中存在的书。若脚本提示某些书没有阅读时间（例如纸质书），询问用户读完的日期（记不清可以只给年月），写入 `reflections/<书名>/meta.json` 的 `"readAt": "YYYY-MM-DD"`（或 `"YYYY-MM"`）字段。
 
 用户只要求"刷新阅读数据"时，到这里即可结束。
 

@@ -178,7 +178,7 @@ const quoteGroups = computed(() =>
 						:title="book.title"
 						>
 							<BookCover :book="book" />
-							<span class="year-book-date text-muted">{{ date.slice(5) || date }}<template v-if="!book.finished"> · 在读</template></span>
+							<span class="year-book-date text-muted">{{ date.slice(5) || date }}</span>
 						</router-link>
 					</div>
 				</div>
