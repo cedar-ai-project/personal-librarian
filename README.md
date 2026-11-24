@@ -26,7 +26,7 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
    npx skills add Tencent/WeChatReading -g
    ```
 
-2. Install this project's skills globally (`write-reading-reflection` turns your notes and spoken reflections into a 读书心得; `generate-reading-profile` snapshots your WeChat Reading stats and drafts your reading profile 阅读画像; `recommend-books` curates a monthly reading list 好书推荐 verified on WeChat Reading):
+2. Install this project's skills globally (`write-reading-reflection` turns your notes and spoken reflections into a 读书心得; `generate-reading-profile` snapshots your WeChat Reading stats and drafts your reading profile 阅读画像; `recommend-books` curates a monthly reading list 好书推荐 verified on WeChat Reading; `build-knowledge-tree` sorts your books into a knowledge tree 知识树 of domains and key ideas):
 
    ```bash
    npx skills add cedar-ai-project/personal-librarian -g
@@ -54,15 +54,16 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
 | `notes/` | Exported highlights and ideas. One subdirectory per book, e.g. `notes/投资第1课/` |
 | `reflections/` | Reading reflections (心得). One subdirectory per book |
 | `profile/` | Reading profile: `reading-stats.json` (WeChat Reading stats snapshot) and `阅读画像.md` (AI-written profile), both produced by `generate-reading-profile` |
+| `knowledge/` | Knowledge tree (`知识树.md`): domains → subdomains → books → key ideas; produced by `build-knowledge-tree` |
 | `recommendations/` | Reading lists (好书推荐), one file per issue (e.g. `2026-11.md`), plus `shelf-status.json`; produced by `recommend-books` |
-| `skills/` | Agent skills bundled with this project (`write-reading-reflection`, `generate-reading-profile`, `recommend-books`) |
+| `skills/` | Agent skills bundled with this project (`write-reading-reflection`, `generate-reading-profile`, `recommend-books`, `build-knowledge-tree`) |
 | `site/` | Source of the GitHub Pages website |
 
 ## Website
 
-Browse the bookshelf, highlights, ideas, reflections, reading profile, and book recommendations online at <https://cedar-ai-project.github.io/personal-librarian/>.
+Browse the bookshelf, highlights, ideas, reflections, reading profile, book recommendations, and knowledge tree online at <https://cedar-ai-project.github.io/personal-librarian/>.
 
-The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/` and `reflections/` and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "...", "readAt": "YYYY-MM-DD" }`) supplies the author, WeChat Reading link, and when the book was finished (for books not read on WeChat Reading; `YYYY-MM` also works). A book counts as finished (读完) when it has a reflection; to mark a book finished before writing one, add `notes/<book>/meta.json` with `{ "finished": true }`. The 阅读画像 page is built from `profile/`, and the 好书推荐 page from `recommendations/`.
+The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/`, `reflections/`, `profile/`, `recommendations/`, and `knowledge/`, and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them or `site/`. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "...", "readAt": "YYYY-MM-DD" }`) supplies the author, WeChat Reading link, and when the book was finished (for books not read on WeChat Reading; `YYYY-MM` also works). A book counts as finished (读完) when it has a reflection; to mark a book finished before writing one, add `notes/<book>/meta.json` with `{ "finished": true }`. The 阅读画像 page is built from `profile/`, the 好书推荐 page from `recommendations/`, and the 知识树 page from `knowledge/`.
 
 To preview locally (Node.js 20+, Python 3 with `pip install fonttools brotli`):
 

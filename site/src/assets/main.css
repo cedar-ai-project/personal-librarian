@@ -17,6 +17,15 @@
 	--c-shadow: rgba(0, 0, 0, 0.15);
 	/* Single-series chart marks, checked for contrast against the page surface. */
 	--c-chart: #1f8ac0;
+	/* Knowledge-tree domains, in tree order (categorical palette, validated for adjacent pairs). */
+	--domain-1: #2a78d6;
+	--domain-2: #eb6834;
+	--domain-3: #1baf7a;
+	--domain-4: #eda100;
+	--domain-5: #e87ba4;
+	--domain-6: #008300;
+	--domain-7: #6250d6;
+	--c-trunk: #8b6b4f;
 	color-scheme: light;
 }
 
@@ -33,6 +42,14 @@ html[data-theme='dark'] {
 	--c-idea-border: #c9952a;
 	--c-shadow: rgba(0, 0, 0, 0.5);
 	--c-chart: #3d9fcf;
+	--domain-1: #3987e5;
+	--domain-2: #d95926;
+	--domain-3: #199e70;
+	--domain-4: #c98500;
+	--domain-5: #d55181;
+	--domain-6: #008300;
+	--domain-7: #9085e9;
+	--c-trunk: #a1846a;
 	color-scheme: dark;
 }
 

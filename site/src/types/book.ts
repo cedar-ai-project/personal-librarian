@@ -90,3 +90,20 @@ export interface RecommendationIssue {
   intro: string
   groups: { name: string; books: RecommendedBook[] }[]
 }
+
+// src/generated/knowledge.json, built from ../knowledge/知识树.md by scripts/build-data.mjs.
+export interface KnowledgePoint {
+  name: string
+  text: string
+  // Section of the book page the point comes from.
+  tab: string | null
+  anchor: string | null
+}
+
+export interface KnowledgeTree {
+  updated: string | null
+  domains: {
+    name: string
+    subdomains: { name: string; books: { title: string; id: string | null; points: KnowledgePoint[] }[] }[]
+  }[]
+}

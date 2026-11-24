@@ -4,6 +4,7 @@
 //   public/covers/<id>.jpg          cover images
 //   src/generated/profile.json      reading stats + parsed persona from ../profile (bundled, used by 阅读画像)
 //   src/generated/recommendations.json  parsed issues from ../recommendations (bundled, used by 好书推荐)
+//   src/generated/knowledge.json   parsed knowledge tree from ../knowledge (bundled, used by 知识树)
 // Run automatically by `npm run dev` / `npm run build`.
 
 import { createHash } from 'node:crypto'
@@ -24,6 +25,8 @@ const PROFILE_DIR = path.join(ROOT, 'profile')
 const OUT_PROFILE = path.join(SITE, 'src', 'generated', 'profile.json')
 const RECOMMENDATIONS_DIR = path.join(ROOT, 'recommendations')
 const OUT_RECOMMENDATIONS = path.join(SITE, 'src', 'generated', 'recommendations.json')
+const KNOWLEDGE_FILE = path.join(ROOT, 'knowledge', '知识树.md')
+const OUT_KNOWLEDGE = path.join(SITE, 'src', 'generated', 'knowledge.json')
 
 const NOTES_FILE = '划线与想法.md'
 const REFLECTION_FILE = '读书心得.md'
@@ -238,6 +241,37 @@ function buildRecommendations(books) {
   fs.writeFileSync(OUT_RECOMMENDATIONS, JSON.stringify(issues, null, 2) + '\n')
 }
 
+// Parse knowledge/知识树.md (structure fixed by skills/build-knowledge-tree) into
+// domain -> subdomain -> book -> points, resolving each point's source heading to a section of the book page.
+function buildKnowledge(books, tocs) {
+  if (!fs.existsSync(KNOWLEDGE_FILE)) {
+    fs.writeFileSync(OUT_KNOWLEDGE, 'null\n')
+    return
+  }
+  const body = fs.readFileSync(KNOWLEDGE_FILE, 'utf8').split(/^---$/m)[0]
+  const DOCS = { 读书心得: 'reflection', 划线与想法: 'notes' }
+  const domains = Object.entries(splitSections(body, '## ')).map(([name, text]) => ({
+    name,
+    subdomains: Object.entries(splitSections(text, '### ')).map(([subName, subText]) => ({
+      name: subName,
+      books: Object.entries(splitSections(subText, '#### ')).map(([heading, bookText]) => {
+        const title = bookTitles(heading)[0] ?? heading
+        const book = books.find((b) => b.title === title)
+        if (!book) console.warn(`knowledge: 《${title}》 is not on the bookshelf`)
+        const points = [...bookText.matchAll(/^- (.+?)：(.+?)(?:（出处：(.+?) · (.+)）)?\s*$/gm)].map((m) => {
+          const tab = DOCS[m[3]] ?? null
+          const anchor = tab && book ? tocs[book.id]?.[tab]?.find((t) => t.text === m[4].trim())?.id ?? null : null
+          if (m[3] && !anchor) console.warn(`knowledge: 《${title}》 ${m[1]}: source not found (${m[3]} · ${m[4]})`)
+          return { name: m[1].trim(), text: m[2].trim(), tab: anchor ? tab : null, anchor }
+        })
+        return { title, id: book?.id ?? null, points }
+      }),
+    })),
+  }))
+  const updated = body.match(/更新日期：(\S+)/)?.[1] ?? null
+  fs.writeFileSync(OUT_KNOWLEDGE, JSON.stringify({ updated, domains }, null, 2) + '\n')
+}
+
 function formatDate(seconds) {
   // Dates are shown in China time, like WeChat Reading.
   return new Date((seconds + 8 * 3600) * 1000).toISOString().slice(0, 10)
@@ -251,6 +285,7 @@ function main() {
   fs.mkdirSync(path.dirname(OUT_LIST), { recursive: true })
   const stats = buildProfile()
 
+  const tocs = {}
   const names = [...new Set([...listBooks(NOTES_DIR), ...listBooks(REFLECTIONS_DIR)])]
   const books = names.map((name) => {
     const id = bookId(name)
@@ -281,6 +316,7 @@ function main() {
       extras.push({ key, title: path.basename(file, '.md') })
     }
     fs.writeFileSync(path.join(OUT_DATA, `${id}.json`), JSON.stringify(data))
+    tocs[id] = Object.fromEntries(Object.entries(data).map(([key, doc]) => [key, doc.toc]))
 
     const cover = [path.join(reflectionDir, 'cover.jpg'), path.join(notesDir, 'cover.jpg')].find((f) => fs.existsSync(f))
     if (cover) fs.copyFileSync(cover, path.join(OUT_COVERS, `${id}.jpg`))
@@ -314,6 +350,7 @@ function main() {
   books.sort((a, b) => Number(b.finished) - Number(a.finished) || shelfDate(b).localeCompare(shelfDate(a)) || b.updatedAt - a.updatedAt)
   fs.writeFileSync(OUT_LIST, JSON.stringify(books, null, 2) + '\n')
   buildRecommendations(books)
+  buildKnowledge(books, tocs)
   console.log(`${books.length} books -> ${path.relative(SITE, OUT_LIST)}, ${path.relative(SITE, OUT_DATA)}/`)
 }
 

@@ -8,11 +8,7 @@ const router = createRouter({
     { path: '/book/:title', name: 'book', component: () => import('../views/BookView.vue'), props: true },
     { path: '/profile', component: () => import('../views/ProfileView.vue') },
     { path: '/recommend', component: () => import('../views/RecommendView.vue') },
-    {
-      path: '/tree',
-      component: () => import('../views/ComingSoonView.vue'),
-      props: { icon: 'mdi-file-tree-outline', title: '知识树', description: '把读过的书按领域分类，生成一棵属于我的知识树。' },
-    },
+    { path: '/tree', component: () => import('../views/KnowledgeTreeView.vue') },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
   scrollBehavior(to, from, savedPosition) {

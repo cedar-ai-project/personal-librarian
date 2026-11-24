@@ -53,6 +53,8 @@ watch(
 
 watch(doc, async () => {
 	await nextTick()
+	// Deep links such as /book/<title>?tab=notes#n-12 (from the knowledge tree) land on that section.
+	if (route.hash) document.getElementById(route.hash.slice(1))?.scrollIntoView({ block: 'start' })
 	updateActive()
 })
 
