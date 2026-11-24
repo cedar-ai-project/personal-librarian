@@ -3,6 +3,7 @@
 //   public/data/<id>.json           rendered Markdown + table of contents per book (fetched on demand)
 //   public/covers/<id>.jpg          cover images
 //   src/generated/profile.json      reading stats + parsed persona from ../profile (bundled, used by 阅读画像)
+//   src/generated/recommendations.json  parsed issues from ../recommendations (bundled, used by 好书推荐)
 // Run automatically by `npm run dev` / `npm run build`.
 
 import { createHash } from 'node:crypto'
@@ -21,6 +22,8 @@ const OUT_DATA = path.join(SITE, 'public', 'data')
 const OUT_COVERS = path.join(SITE, 'public', 'covers')
 const PROFILE_DIR = path.join(ROOT, 'profile')
 const OUT_PROFILE = path.join(SITE, 'src', 'generated', 'profile.json')
+const RECOMMENDATIONS_DIR = path.join(ROOT, 'recommendations')
+const OUT_RECOMMENDATIONS = path.join(SITE, 'src', 'generated', 'recommendations.json')
 
 const NOTES_FILE = '划线与想法.md'
 const REFLECTION_FILE = '读书心得.md'
@@ -173,6 +176,68 @@ function buildProfile() {
   return stats
 }
 
+// Parse recommendations/<issue>.md, whose structure is fixed by skills/recommend-books.
+function parseIssue(source) {
+  const body = source.split(/^---$/m)[0]
+  const firstGroup = body.search(/^## /m)
+  const head = firstGroup >= 0 ? body.slice(0, firstGroup) : body
+  const md = new MarkdownIt()
+  const intro = head.replace(/^# .*$/m, '').replace(/^> .*$/gm, '').trim()
+  return {
+    title: head.match(/^# (.+)$/m)?.[1].trim() ?? '',
+    date: head.match(/推荐日期：(\S+)/)?.[1] ?? null,
+    intro: intro ? md.render(intro) : '',
+    groups: Object.entries(splitSections(firstGroup >= 0 ? body.slice(firstGroup) : '', '## ')).map(([name, text]) => ({
+      name,
+      books: Object.entries(splitSections(text, '### ')).map(([heading, entry]) => {
+        const field = (key) => entry.match(new RegExp(`^- ${key}：(.+)$`, 'm'))?.[1].trim() ?? null
+        const rating = field('评分')?.match(/^([\d.]+)%(?:（(?:(.+?)，)?(\d+) 人评分）)?/)
+        return {
+          title: bookTitles(heading)[0] ?? heading,
+          author: field('作者'),
+          bookId: field('bookId'),
+          rating: rating ? Number(rating[1]) : null,
+          ratingTitle: rating?.[2] ?? null,
+          ratingCount: rating?.[3] ? Number(rating[3]) : null,
+          cover: field('封面'),
+          link: field('链接'),
+          related: bookTitles(field('关联') ?? ''),
+          intro: entry.match(/^简介：(.+)$/m)?.[1].trim() ?? '',
+          reason: entry.match(/^推荐理由：([\s\S]+)/m)?.[1].trim() ?? '',
+        }
+      }),
+    })),
+  }
+}
+
+// Match a recommended title such as "金钱心理学（全新增订版）" to a book directory such as "金钱心理学".
+function findLocal(title, books) {
+  return books.find((b) => title === b.title || new RegExp(`^${b.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[（(：:]`).test(title))
+}
+
+function buildRecommendations(books) {
+  const files = fs.existsSync(RECOMMENDATIONS_DIR)
+    ? fs.readdirSync(RECOMMENDATIONS_DIR).filter((f) => /^\d{4}-\d{2}(-\d+)?\.md$/.test(f))
+    : []
+  const shelf = readJson(path.join(RECOMMENDATIONS_DIR, 'shelf-status.json')).books ?? {}
+  const issues = files.map((file) => {
+    const issue = parseIssue(fs.readFileSync(path.join(RECOMMENDATIONS_DIR, file), 'utf8'))
+    for (const group of issue.groups) {
+      for (const book of group.books) {
+        // Status: read (finished here or on WeChat Reading) > reading (has notes here) > on the shelf.
+        const local = findLocal(book.title, books)
+        const onShelf = shelf[book.bookId] ?? {}
+        book.localTitle = local?.title ?? null
+        book.status = local?.finished || onShelf.finished ? 'read' : local ? 'reading' : onShelf.onShelf ? 'shelf' : null
+      }
+    }
+    return { id: path.basename(file, '.md'), ...issue }
+  })
+  // Newest issue first.
+  issues.sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }))
+  fs.writeFileSync(OUT_RECOMMENDATIONS, JSON.stringify(issues, null, 2) + '\n')
+}
+
 function formatDate(seconds) {
   // Dates are shown in China time, like WeChat Reading.
   return new Date((seconds + 8 * 3600) * 1000).toISOString().slice(0, 10)
@@ -248,6 +313,7 @@ function main() {
   const shelfDate = (book) => (book.finished ? book.finishedAt : book.startedAt) ?? book.readAt ?? ''
   books.sort((a, b) => Number(b.finished) - Number(a.finished) || shelfDate(b).localeCompare(shelfDate(a)) || b.updatedAt - a.updatedAt)
   fs.writeFileSync(OUT_LIST, JSON.stringify(books, null, 2) + '\n')
+  buildRecommendations(books)
   console.log(`${books.length} books -> ${path.relative(SITE, OUT_LIST)}, ${path.relative(SITE, OUT_DATA)}/`)
 }
 

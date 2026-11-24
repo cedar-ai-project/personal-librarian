@@ -26,7 +26,7 @@
    npx skills add Tencent/WeChatReading -g
    ```
 
-2. 全局安装本项目自带的 skill（`write-reading-reflection` 可根据划线与想法和口述感悟自动生成读书心得；`generate-reading-profile` 可拉取微信读书阅读统计快照并起草阅读画像）：
+2. 全局安装本项目自带的 skill（`write-reading-reflection` 可根据划线与想法和口述感悟自动生成读书心得；`generate-reading-profile` 可拉取微信读书阅读统计快照并起草阅读画像；`recommend-books` 可精选并经微信读书核实，生成一期好书推荐书单）：
 
    ```bash
    npx skills add cedar-ai-project/personal-librarian -g
@@ -54,15 +54,15 @@
 | `notes/` | 导出的划线和想法。每本书一个子目录，如 `notes/投资第1课/` |
 | `reflections/` | 读书心得。每本书一个子目录 |
 | `profile/` | 阅读画像：`reading-stats.json`（微信读书统计快照）和 `阅读画像.md`（AI 撰写的画像），均由 `generate-reading-profile` 生成 |
-| `recommendations/` | 为你推荐的书单 |
-| `skills/` | 本项目自带的 agent skill（`write-reading-reflection`、`generate-reading-profile`） |
+| `recommendations/` | 好书推荐书单，每期一个文件（如 `2026-11.md`），以及 `shelf-status.json`；由 `recommend-books` 生成 |
+| `skills/` | 本项目自带的 agent skill（`write-reading-reflection`、`generate-reading-profile`、`recommend-books`） |
 | `site/` | GitHub Pages 网站源码 |
 
 ## 在线浏览
 
-在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法、读书心得和阅读画像。
+在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法、读书心得、阅读画像和好书推荐。
 
-网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "...", "readAt": "YYYY-MM" }`）中补充作者、微信读书链接，以及阅读时间（用于不在微信读书上读的书）。有读书心得的书会显示为「读完」；若想在写心得之前就标记为读完，可以添加 `notes/<书名>/meta.json`，内容为 `{ "finished": true }`。「阅读画像」页面由 `profile/` 生成。
+网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "...", "readAt": "YYYY-MM" }`）中补充作者、微信读书链接，以及阅读时间（用于不在微信读书上读的书）。有读书心得的书会显示为「读完」；若想在写心得之前就标记为读完，可以添加 `notes/<书名>/meta.json`，内容为 `{ "finished": true }`。「阅读画像」页面由 `profile/` 生成，「好书推荐」页面由 `recommendations/` 生成。
 
 本地预览（需要 Node.js 20+，以及安装了 `pip install fonttools brotli` 的 Python 3）：
 

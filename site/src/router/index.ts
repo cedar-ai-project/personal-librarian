@@ -7,11 +7,7 @@ const router = createRouter({
     { path: '/', name: 'bookshelf', component: BookshelfView },
     { path: '/book/:title', name: 'book', component: () => import('../views/BookView.vue'), props: true },
     { path: '/profile', component: () => import('../views/ProfileView.vue') },
-    {
-      path: '/recommend',
-      component: () => import('../views/ComingSoonView.vue'),
-      props: { icon: 'mdi-book-heart-outline', title: '好书推荐', description: '根据读书偏好画像，自动分析并推荐值得一读的新书。' },
-    },
+    { path: '/recommend', component: () => import('../views/RecommendView.vue') },
     {
       path: '/tree',
       component: () => import('../views/ComingSoonView.vue'),

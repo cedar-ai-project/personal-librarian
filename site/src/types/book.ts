@@ -64,3 +64,29 @@ export interface Profile {
   stats: ReadingStats | null
   persona: Persona | null
 }
+
+// src/generated/recommendations.json, built from ../recommendations by scripts/build-data.mjs.
+export interface RecommendedBook {
+  title: string
+  author: string | null
+  bookId: string | null
+  rating: number | null
+  ratingTitle: string | null
+  ratingCount: number | null
+  cover: string | null
+  link: string | null
+  related: string[]
+  intro: string
+  reason: string
+  // Book directory in this repository, when the recommendation has since been read here.
+  localTitle: string | null
+  status: 'read' | 'reading' | 'shelf' | null
+}
+
+export interface RecommendationIssue {
+  id: string
+  title: string
+  date: string | null
+  intro: string
+  groups: { name: string; books: RecommendedBook[] }[]
+}

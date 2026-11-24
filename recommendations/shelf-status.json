@@ -1,0 +1,61 @@
+{
+  "snapshotDate": "2026-11-24",
+  "books": {
+    "25242032": {
+      "onShelf": false,
+      "finished": false
+    },
+    "29750244": {
+      "onShelf": false,
+      "finished": false
+    },
+    "3300014116": {
+      "onShelf": false,
+      "finished": false
+    },
+    "3300038268": {
+      "onShelf": false,
+      "finished": false
+    },
+    "3300083256": {
+      "onShelf": true,
+      "finished": false
+    },
+    "3300085315": {
+      "onShelf": true,
+      "finished": false
+    },
+    "3300114108": {
+      "onShelf": false,
+      "finished": false
+    },
+    "3300143092": {
+      "onShelf": false,
+      "finished": false
+    },
+    "3300204620": {
+      "onShelf": true,
+      "finished": false
+    },
+    "40055543": {
+      "onShelf": true,
+      "finished": false
+    },
+    "42689053": {
+      "onShelf": false,
+      "finished": false
+    },
+    "42766048": {
+      "onShelf": false,
+      "finished": false
+    },
+    "907585": {
+      "onShelf": false,
+      "finished": false
+    },
+    "937610": {
+      "onShelf": false,
+      "finished": false
+    }
+  }
+}
