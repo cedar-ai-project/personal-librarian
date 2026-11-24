@@ -6,11 +6,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'bookshelf', component: BookshelfView },
     { path: '/book/:title', name: 'book', component: () => import('../views/BookView.vue'), props: true },
-    {
-      path: '/profile',
-      component: () => import('../views/ComingSoonView.vue'),
-      props: { icon: 'mdi-account-heart-outline', title: '读书画像', description: '根据历史阅读记录，总结出我的个人读书偏好画像。' },
-    },
+    { path: '/profile', component: () => import('../views/ProfileView.vue') },
     {
       path: '/recommend',
       component: () => import('../views/ComingSoonView.vue'),

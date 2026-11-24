@@ -2,6 +2,7 @@
 //   src/generated/books.json        book list (bundled, used by the bookshelf)
 //   public/data/<id>.json           rendered Markdown + table of contents per book (fetched on demand)
 //   public/covers/<id>.jpg          cover images
+//   src/generated/profile.json      reading stats + parsed persona from ../profile (bundled, used by 阅读画像)
 // Run automatically by `npm run dev` / `npm run build`.
 
 import { createHash } from 'node:crypto'
@@ -18,6 +19,8 @@ const REFLECTIONS_DIR = path.join(ROOT, 'reflections')
 const OUT_LIST = path.join(SITE, 'src', 'generated', 'books.json')
 const OUT_DATA = path.join(SITE, 'public', 'data')
 const OUT_COVERS = path.join(SITE, 'public', 'covers')
+const PROFILE_DIR = path.join(ROOT, 'profile')
+const OUT_PROFILE = path.join(SITE, 'src', 'generated', 'profile.json')
 
 const NOTES_FILE = '划线与想法.md'
 const REFLECTION_FILE = '读书心得.md'
@@ -114,12 +117,74 @@ function readJson(file) {
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {}
 }
 
+// Split Markdown into { heading: body } for one heading level ("## " or "### ").
+function splitSections(md, marker) {
+  const sections = {}
+  const parts = md.split(new RegExp(`^${marker}(.+)$`, 'm'))
+  for (let i = 1; i < parts.length; i += 2) sections[parts[i].trim()] = parts[i + 1].trim()
+  return sections
+}
+
+function bookTitles(text) {
+  return [...text.matchAll(/《(.+?)》/g)].map((m) => m[1])
+}
+
+// One "> text\n>\n> ——《书名》" block per quote.
+function parseQuotes(body) {
+  return body
+    .split(/\n\s*\n(?=>)/)
+    .map((block) => block.split('\n').map((line) => line.replace(/^>\s?/, '').trim()).filter(Boolean))
+    .filter((lines) => lines.length)
+    .map((lines) => {
+      const source = lines.at(-1).startsWith('——') ? lines.pop() : ''
+      return { text: lines.join('\n'), book: bookTitles(source)[0] ?? null }
+    })
+}
+
+// Parse profile/阅读画像.md, whose structure is fixed by skills/generate-reading-profile.
+function parsePersona(source) {
+  const md = new MarkdownIt({ linkify: true })
+  const body = source.split(/^---$/m)[0]
+  const sections = splitSections(body, '## ')
+  const personality = sections['阅读人格'] ?? ''
+  const themes = splitSections(sections['核心关注主题'] ?? '', '### ')
+  const timeline = splitSections(sections['思想变化轨迹'] ?? '', '### ')
+  const quotes = splitSections(sections['金句'] ?? '', '### ')
+  return {
+    updated: body.match(/更新日期：(\S+)/)?.[1] ?? null,
+    title: personality.match(/^\*\*称号\*\*：(.+)$/m)?.[1].trim() ?? null,
+    summary: md.render(personality.replace(/^\*\*称号\*\*：.*$/m, '')),
+    keywords: [...(sections['关键词'] ?? '').matchAll(/^- (.+?)（(\d)）\s*$/gm)].map((m) => ({ text: m[1], weight: Number(m[2]) })),
+    themes: Object.entries(themes).map(([name, text]) => {
+      const booksLine = text.match(/^代表书籍：(.+)$/m)?.[1] ?? ''
+      return { name, html: md.render(text.replace(/^代表书籍：.*$/m, '')), books: bookTitles(booksLine) }
+    }),
+    timeline: Object.entries(timeline).map(([heading, text]) => ({ year: Number.parseInt(heading), html: md.render(text) })),
+    quotes: { book: parseQuotes(quotes['书中原文'] ?? ''), mine: parseQuotes(quotes['我的感悟'] ?? '') },
+  }
+}
+
+function buildProfile() {
+  const stats = readJson(path.join(PROFILE_DIR, 'reading-stats.json'))
+  const personaFile = path.join(PROFILE_DIR, '阅读画像.md')
+  const persona = fs.existsSync(personaFile) ? parsePersona(fs.readFileSync(personaFile, 'utf8')) : null
+  const profile = { stats: Object.keys(stats).length ? stats : null, persona }
+  fs.writeFileSync(OUT_PROFILE, JSON.stringify(profile, null, 2) + '\n')
+  return stats
+}
+
+function formatDate(seconds) {
+  // Dates are shown in China time, like WeChat Reading.
+  return new Date((seconds + 8 * 3600) * 1000).toISOString().slice(0, 10)
+}
+
 function main() {
   fs.rmSync(OUT_DATA, { recursive: true, force: true })
   fs.rmSync(OUT_COVERS, { recursive: true, force: true })
   fs.mkdirSync(OUT_DATA, { recursive: true })
   fs.mkdirSync(OUT_COVERS, { recursive: true })
   fs.mkdirSync(path.dirname(OUT_LIST), { recursive: true })
+  const stats = buildProfile()
 
   const names = [...new Set([...listBooks(NOTES_DIR), ...listBooks(REFLECTIONS_DIR)])]
   const books = names.map((name) => {
@@ -165,6 +230,8 @@ function main() {
       hasReflection,
       extras,
       cover: Boolean(cover),
+      // Last read on WeChat Reading ("YYYY-MM-DD"), or "YYYY-MM" from meta.json for books read elsewhere.
+      readAt: meta.readAt ?? (stats.books?.[name] ? formatDate(stats.books[name].lastReadAt) : null),
       updatedAt: updatedAt(name),
     }
   })

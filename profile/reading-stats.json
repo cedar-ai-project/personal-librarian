@@ -1,0 +1,269 @@
+{
+  "snapshotDate": "2026-11-24",
+  "registTime": 1544883048,
+  "overview": {
+    "totalReadTime": 443314,
+    "readDays": 203,
+    "readCount": 35,
+    "finishCount": 26,
+    "noteCount": 4107
+  },
+  "yearly": [
+    {
+      "year": 2023,
+      "readTime": 93766
+    },
+    {
+      "year": 2024,
+      "readTime": 234352
+    },
+    {
+      "year": 2025,
+      "readTime": 84027
+    },
+    {
+      "year": 2026,
+      "readTime": 31169
+    }
+  ],
+  "categories": [
+    {
+      "title": "经济理财",
+      "parent": "经济理财",
+      "readTime": 128491,
+      "count": 7
+    },
+    {
+      "title": "计算机",
+      "parent": "计算机",
+      "readTime": 58871,
+      "count": 5
+    },
+    {
+      "title": "个人成长",
+      "parent": "个人成长",
+      "readTime": 51239,
+      "count": 4
+    },
+    {
+      "title": "教育学习",
+      "parent": "教育学习",
+      "readTime": 47358,
+      "count": 1
+    },
+    {
+      "title": "文学",
+      "parent": "文学",
+      "readTime": 44784,
+      "count": 2
+    },
+    {
+      "title": "影视原著",
+      "parent": "精品小说",
+      "readTime": 44605,
+      "count": 3
+    },
+    {
+      "title": "心理",
+      "parent": "心理",
+      "readTime": 39230,
+      "count": 6
+    },
+    {
+      "title": "医学健康",
+      "parent": "医学健康",
+      "readTime": 26804,
+      "count": 2
+    }
+  ],
+  "preferCategoryWord": "偏好阅读经济理财",
+  "hourly": [
+    45634,
+    7417,
+    2926,
+    0,
+    0,
+    0,
+    0,
+    6,
+    921,
+    21037,
+    57385,
+    67092,
+    24399,
+    19367,
+    26758,
+    30930,
+    25090,
+    17319,
+    9307,
+    10410,
+    4823,
+    3738,
+    6083,
+    61870
+  ],
+  "preferTimeWord": "偏好白天阅读",
+  "topBooks": [
+    {
+      "title": "费曼学习法",
+      "readTime": 63060,
+      "tags": [
+        "单日阅读最久"
+      ]
+    },
+    {
+      "title": "海绵阅读法：如何吸收一本书的精华",
+      "readTime": 47358,
+      "tags": []
+    },
+    {
+      "title": "大话设计模式",
+      "readTime": 43884,
+      "tags": []
+    },
+    {
+      "title": "富爸爸穷爸爸",
+      "readTime": 37635,
+      "tags": []
+    },
+    {
+      "title": "认知觉醒：开启自我改变的原动力",
+      "readTime": 34733,
+      "tags": [
+        "笔记最多"
+      ]
+    },
+    {
+      "title": "悉达多",
+      "readTime": 25167,
+      "tags": []
+    },
+    {
+      "title": "长安的荔枝（同名影视原著）",
+      "readTime": 24985,
+      "tags": []
+    },
+    {
+      "title": "内向者优势",
+      "readTime": 23670,
+      "tags": []
+    },
+    {
+      "title": "投资第1课",
+      "readTime": 21952,
+      "tags": []
+    },
+    {
+      "title": "小王子（中英文对照版）",
+      "readTime": 19617,
+      "tags": []
+    }
+  ],
+  "books": {
+    "MBTI：潜能开发和人性攻略": {
+      "lastReadAt": 1784342397,
+      "finished": false
+    },
+    "Maven实战": {
+      "lastReadAt": 1718785979,
+      "finished": true
+    },
+    "主场": {
+      "lastReadAt": 1792672504,
+      "finished": false
+    },
+    "内向者优势": {
+      "lastReadAt": 1755397700,
+      "finished": true
+    },
+    "图解人工智能": {
+      "lastReadAt": 1696955001,
+      "finished": false
+    },
+    "大话设计模式": {
+      "lastReadAt": 1701102825,
+      "finished": true
+    },
+    "富爸爸穷爸爸": {
+      "lastReadAt": 1717863430,
+      "finished": true
+    },
+    "小岛经济学": {
+      "lastReadAt": 1715861427,
+      "finished": true
+    },
+    "小王子（中英文对照版）": {
+      "lastReadAt": 1707391348,
+      "finished": true
+    },
+    "弗洛伊德与为什么鸭": {
+      "lastReadAt": 1696954989,
+      "finished": false
+    },
+    "悉达多": {
+      "lastReadAt": 1747665958,
+      "finished": true
+    },
+    "我不是教你诈": {
+      "lastReadAt": 1712136669,
+      "finished": false
+    },
+    "投资第1课": {
+      "lastReadAt": 1795318241,
+      "finished": true
+    },
+    "抗老生活": {
+      "lastReadAt": 1748856481,
+      "finished": true
+    },
+    "早起的奇迹": {
+      "lastReadAt": 1729950319,
+      "finished": true
+    },
+    "海绵阅读法：如何吸收一本书的精华": {
+      "lastReadAt": 1709225027,
+      "finished": true
+    },
+    "深度学习推荐系统": {
+      "lastReadAt": 1709695258,
+      "finished": false
+    },
+    "渠道管理就这样做": {
+      "lastReadAt": 1697178227,
+      "finished": false
+    },
+    "睡眠革命：新版": {
+      "lastReadAt": 1722489652,
+      "finished": true
+    },
+    "纳瓦尔宝典": {
+      "lastReadAt": 1769495142,
+      "finished": true
+    },
+    "蛤蟆先生去看心理医生": {
+      "lastReadAt": 1701217101,
+      "finished": true
+    },
+    "被讨厌的勇气": {
+      "lastReadAt": 1726930123,
+      "finished": true
+    },
+    "解忧杂货店": {
+      "lastReadAt": 1746938996,
+      "finished": true
+    },
+    "认知觉醒：开启自我改变的原动力": {
+      "lastReadAt": 1718726147,
+      "finished": true
+    },
+    "费曼学习法": {
+      "lastReadAt": 1718167159,
+      "finished": true
+    },
+    "长安的荔枝（同名影视原著）": {
+      "lastReadAt": 1738501158,
+      "finished": true
+    }
+  }
+}

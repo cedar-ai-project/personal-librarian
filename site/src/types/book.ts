@@ -11,6 +11,7 @@ export interface Book {
   hasReflection: boolean
   extras: { key: string; title: string }[]
   cover: boolean
+  readAt: string | null
   updatedAt: number
 }
 
@@ -27,3 +28,36 @@ export interface RenderedDoc {
 
 // Content of public/data/<id>.json, keyed by tab: reflection / notes / extras.
 export type BookContent = Record<string, RenderedDoc>
+
+// src/generated/profile.json, built from ../profile by scripts/build-data.mjs.
+export interface ReadingStats {
+  snapshotDate: string
+  registTime: number
+  overview: { totalReadTime: number; readDays: number; readCount: number; finishCount: number; noteCount: number }
+  yearly: { year: number; readTime: number }[]
+  categories: { title: string; parent: string; readTime: number; count: number }[]
+  preferCategoryWord: string | null
+  hourly: number[]
+  preferTimeWord: string | null
+  topBooks: { title: string; readTime: number; tags: string[] }[]
+}
+
+export interface Quote {
+  text: string
+  book: string | null
+}
+
+export interface Persona {
+  updated: string | null
+  title: string | null
+  summary: string
+  keywords: { text: string; weight: number }[]
+  themes: { name: string; html: string; books: string[] }[]
+  timeline: { year: number; html: string }[]
+  quotes: { book: Quote[]; mine: Quote[] }
+}
+
+export interface Profile {
+  stats: ReadingStats | null
+  persona: Persona | null
+}

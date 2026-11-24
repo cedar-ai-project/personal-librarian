@@ -26,7 +26,7 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
    npx skills add Tencent/WeChatReading -g
    ```
 
-2. Install this project's skills globally (e.g. `write-reading-reflection`, which turns your notes and spoken reflections into a 读书心得):
+2. Install this project's skills globally (`write-reading-reflection` turns your notes and spoken reflections into a 读书心得; `generate-reading-profile` snapshots your WeChat Reading stats and drafts your reading profile 阅读画像):
 
    ```bash
    npx skills add cedar-ai-project/personal-librarian -g
@@ -53,16 +53,16 @@ The project is driven by an AI coding agent (e.g., Claude Code) with the [weread
 | --------- | ------- |
 | `notes/` | Exported highlights and ideas. One subdirectory per book, e.g. `notes/投资第1课/` |
 | `reflections/` | Reading reflections (心得). One subdirectory per book |
-| `profile/` | Personal reading taste profile and analysis |
+| `profile/` | Reading profile: `reading-stats.json` (WeChat Reading stats snapshot) and `阅读画像.md` (AI-written profile), both produced by `generate-reading-profile` |
 | `recommendations/` | Book recommendations for you |
-| `skills/` | Agent skills bundled with this project (e.g. `write-reading-reflection`) |
+| `skills/` | Agent skills bundled with this project (`write-reading-reflection`, `generate-reading-profile`) |
 | `site/` | Source of the GitHub Pages website |
 
 ## Website
 
-Browse the bookshelf, highlights, ideas, and reflections online at <https://cedar-ai-project.github.io/personal-librarian/>.
+Browse the bookshelf, highlights, ideas, reflections, and reading profile online at <https://cedar-ai-project.github.io/personal-librarian/>.
 
-The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/` and `reflections/` and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "..." }`) supplies the author and WeChat Reading link.
+The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/` and `reflections/` and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "...", "readAt": "YYYY-MM" }`) supplies the author, WeChat Reading link, and when the book was read (for books not on WeChat Reading). The 阅读画像 page is built from `profile/`.
 
 To preview locally (Node.js 20+, Python 3 with `pip install fonttools brotli`):
 

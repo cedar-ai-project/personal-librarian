@@ -5,7 +5,7 @@ const { isDark, toggleTheme } = useThemeMode()
 
 const sections = [
 	{ to: '/', icon: 'mdi-bookshelf', title: '书架' },
-	{ to: '/profile', icon: 'mdi-account-heart-outline', title: '读书画像' },
+	{ to: '/profile', icon: 'mdi-account-heart-outline', title: '阅读画像' },
 	{ to: '/recommend', icon: 'mdi-book-heart-outline', title: '好书推荐' },
 	{ to: '/tree', icon: 'mdi-file-tree-outline', title: '知识树' },
 ]
