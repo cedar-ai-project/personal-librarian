@@ -88,7 +88,7 @@ async function copyWereadId() {
 				<div class="book-title">{{ book.title }}</div>
 				<div class="book-author text-muted">{{ book.author ?? ' ' }}</div>
 				<div class="book-tags">
-					<span v-if="book.hasReflection" class="tag tag-finished">心得</span>
+					<span v-if="book.hasReflection" class="tag tag-finished">读完</span>
 					<span v-else class="tag tag-reading">在读</span>
 					<span v-if="book.highlights !== null" class="tag">划线 {{ book.highlights }}</span>
 				</div>
