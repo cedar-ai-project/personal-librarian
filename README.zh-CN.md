@@ -8,10 +8,44 @@
 - **写读书心得** —— 在 AI agent 的帮助下，把原始笔记整理成结构化的读书心得。
 - **阅读画像** —— 分析笔记、书架和阅读统计数据，生成个人读书喜好画像。
 - **个性化推荐** —— 根据你的画像和兴趣发现新书。
+- **知识树** —— 把读过的书按领域分类，并把从每本书中收获的核心知识点挂到知识树上。
+- **网站** —— 在 GitHub Pages 上浏览书架、笔记、读书心得、阅读画像、好书推荐和知识树。
 
 ## 工作原理
 
 项目由 AI 编码 agent（如 Claude Code）驱动，依赖 [weread-skills](https://github.com/Tencent/WeChatReading) skill。你用自然语言提出需求——"导出我在三体里的划线"、"总结一下我这个月的阅读"、"给我推荐一本书"——agent 就会调用微信读书 API、处理结果，并把产出写入本仓库。
+
+## 工作流
+
+Personal Librarian 把阅读变成一个个人成长与发展的循环：在微信读书上阅读；每读完一本书，拉取笔记、写读书心得，并把收获的知识挂到知识树上；每月或每季度（频率由你决定）更新一次阅读画像，再根据画像推荐接下来值得读的好书。
+
+```mermaid
+flowchart TB
+    read["📖 在微信读书上阅读"]
+
+    subgraph perBook["每读完一本书"]
+        direction TB
+        export["⬇️ 拉取划线与想法<br/><code>weread-skills</code>"]
+        reflect["✍️ 生成读书心得<br/><code>write-reading-reflection</code>"]
+        tree["🌳 把收获的知识挂到知识树上<br/><code>build-knowledge-tree</code>"]
+        export --> reflect --> tree
+    end
+
+    subgraph periodic["每月 / 每季度（频率自定）"]
+        direction TB
+        profile["🪞 更新阅读画像<br/><code>generate-reading-profile</code>"]
+        recommend["📚 推荐新的好书<br/><code>recommend-books</code>"]
+        profile --> recommend
+    end
+
+    site["🌐 在网站上浏览全部内容<br/>GitHub Pages"]
+
+    read --> export
+    tree -->|"笔记与知识不断积累"| profile
+    recommend -->|"挑选下一本书"| read
+    perBook -.-> site
+    periodic -.-> site
+```
 
 ## 前置条件
 

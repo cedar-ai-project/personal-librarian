@@ -8,10 +8,44 @@ An AI-agent-driven personal librarian that works with [WeChat Reading (微信读
 - **Write reading reflections** — turn raw notes into structured reading reviews (心得) with the help of an AI agent.
 - **Reading profile** — analyze your notes, bookshelf, and reading stats to generate a personal reading taste profile (偏好画像).
 - **Personalized recommendations** — discover new books based on your profile and interests.
+- **Knowledge tree** — sort the books you have read into domains and hang the key ideas you took from each one on a tree (知识树).
+- **Website** — browse your bookshelf, notes, reflections, reading profile, recommendations, and knowledge tree on GitHub Pages.
 
 ## How it works
 
 The project is driven by an AI coding agent (e.g., Claude Code) with the [weread-skills](https://github.com/Tencent/WeChatReading) skill installed. You ask for something in natural language — "export my highlights from 三体", "summarize my reading this month", "recommend me a book" — and the agent calls the WeChat Reading API, processes the results, and writes the output into this repository.
+
+## Workflow
+
+Personal Librarian turns reading into a loop of personal growth. Read on WeChat Reading; after each book, pull its notes, write a reflection, and hang what you learned on your knowledge tree. Every month or quarter (you pick the rhythm), refresh your reading profile and let it recommend the next books to read.
+
+```mermaid
+flowchart TB
+    read["📖 Read on WeChat Reading"]
+
+    subgraph perBook["After finishing each book"]
+        direction TB
+        export["⬇️ Export highlights & ideas<br/><code>weread-skills</code>"]
+        reflect["✍️ Write a reading reflection<br/><code>write-reading-reflection</code>"]
+        tree["🌳 Hang its key ideas on the knowledge tree<br/><code>build-knowledge-tree</code>"]
+        export --> reflect --> tree
+    end
+
+    subgraph periodic["Every month or quarter (your call)"]
+        direction TB
+        profile["🪞 Update the reading profile<br/><code>generate-reading-profile</code>"]
+        recommend["📚 Get a new reading list<br/><code>recommend-books</code>"]
+        profile --> recommend
+    end
+
+    site["🌐 Browse everything on the website<br/>GitHub Pages"]
+
+    read --> export
+    tree -->|"notes and ideas pile up"| profile
+    recommend -->|"pick the next book"| read
+    perBook -.-> site
+    periodic -.-> site
+```
 
 ## Prerequisites
 
