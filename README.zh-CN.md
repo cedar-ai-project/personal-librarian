@@ -95,7 +95,37 @@ flowchart TB
 
 ## 在线浏览
 
-在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法、读书心得、阅读画像、好书推荐和知识树。
+在 <https://cedar-ai-project.github.io/personal-librarian/> 在线浏览书架、划线、想法、读书心得、阅读画像、好书推荐和知识树。网站共有 4 个页面，支持亮色和暗色模式：
+
+### 书架
+
+所有书以封面卡片展示，支持搜索，可按「读完 / 在读」筛选。点开一本书，可以阅读它的读书心得以及全部划线与想法，并带有章节目录。
+
+<!-- TODO: 补充书架页面的截图 -->
+![书架](docs/screenshots/bookshelf.png)
+
+### 阅读画像
+
+AI 撰写的阅读人格、关键词、核心关注主题、逐年的思想变化轨迹和金句，配合微信读书阅读统计图表：逐年阅读时长、24 小时阅读时段、偏好分类，以及读得最久的书。
+
+<!-- TODO: 补充阅读画像页面的截图 -->
+![阅读画像](docs/screenshots/profile.png)
+
+### 好书推荐
+
+每月或每季度一期、经微信读书核实的书单，按推荐动机分组，附评分、关联已读书籍的个性化推荐理由，并标注是否已在书架或已读。
+
+<!-- TODO: 补充好书推荐页面的截图 -->
+![好书推荐](docs/screenshots/recommend.png)
+
+### 知识树
+
+把读过的书画成一棵从树根生长的树：每个领域是一根主枝（书越多的领域越靠近树根），每本书是挂着封面的枝杈，每个知识点是一片叶子。点击叶子，可以查看知识点的解释、跳转到笔记原文，并看到同一知识点还出现在哪些书中。
+
+<!-- TODO: 补充知识树页面的截图 -->
+![知识树](docs/screenshots/knowledge-tree.png)
+
+### 网站的构建方式
 
 网站源码位于 `site/`（Vue 3 + Vite + Vuetify）。每次向 `main` 推送 `notes/`、`reflections/`、`profile/`、`recommendations/`、`knowledge/` 或 `site/` 的改动时，`.github/workflows/deploy-site.yml` 会重新构建并部署网站。书架会展示每本书的 `cover.jpg`。对于只有读书心得的书，可以在 `reflections/<书名>/meta.json`（`{ "author": "...", "link": "...", "readAt": "YYYY-MM-DD" }`）中补充作者、微信读书链接，以及读完日期（用于不在微信读书上读的书，也可以只写到 `YYYY-MM`）。有读书心得的书会显示为「读完」；若想在写心得之前就标记为读完，可以添加 `notes/<书名>/meta.json`，内容为 `{ "finished": true }`。「阅读画像」页面由 `profile/` 生成，「好书推荐」页面由 `recommendations/` 生成，「知识树」页面由 `knowledge/` 生成。
 

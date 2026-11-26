@@ -95,7 +95,37 @@ flowchart TB
 
 ## Website
 
-Browse the bookshelf, highlights, ideas, reflections, reading profile, book recommendations, and knowledge tree online at <https://cedar-ai-project.github.io/personal-librarian/>.
+Browse the bookshelf, highlights, ideas, reflections, reading profile, book recommendations, and knowledge tree online at <https://cedar-ai-project.github.io/personal-librarian/>. The site has four pages, with light and dark themes:
+
+### 书架 · Bookshelf
+
+Every book as a cover card, with search and a finished / still-reading filter. Open a book to read its reflection (读书心得) and all its highlights and ideas (划线与想法), with a table of contents.
+
+<!-- TODO: add a screenshot of the bookshelf page -->
+![Bookshelf](docs/screenshots/bookshelf.png)
+
+### 阅读画像 · Reading profile
+
+An AI-written reading persona with keywords, core themes, how your thinking changed year by year, and favourite quotes, next to charts of your WeChat Reading stats: reading time per year and per hour of day, favourite categories, and the books you spent longest on.
+
+<!-- TODO: add a screenshot of the reading profile page -->
+![Reading profile](docs/screenshots/profile.png)
+
+### 好书推荐 · Book recommendations
+
+A monthly or quarterly reading list verified on WeChat Reading, grouped by why each book is recommended, with ratings, a personal reason that links back to the books you have read, and whether a book is already on your shelf or read.
+
+<!-- TODO: add a screenshot of the book recommendations page -->
+![Book recommendations](docs/screenshots/recommend.png)
+
+### 知识树 · Knowledge tree
+
+Your books drawn as a tree growing from its roots: each domain is a branch (the domains with the most books sit nearest the root), each book a twig carrying its cover, and each knowledge point a leaf. Click a leaf for its explanation, a link to the original note, and the other books where the same idea appears.
+
+<!-- TODO: add a screenshot of the knowledge tree page -->
+![Knowledge tree](docs/screenshots/knowledge-tree.png)
+
+### How the site is built
 
 The site lives in `site/` (Vue 3 + Vite + Vuetify). It is rebuilt from `notes/`, `reflections/`, `profile/`, `recommendations/`, and `knowledge/`, and deployed by `.github/workflows/deploy-site.yml` on every push to `main` that touches them or `site/`. Each book's `cover.jpg` is shown on the bookshelf. For books that only have a reflection, an optional `reflections/<book>/meta.json` (`{ "author": "...", "link": "...", "readAt": "YYYY-MM-DD" }`) supplies the author, WeChat Reading link, and when the book was finished (for books not read on WeChat Reading; `YYYY-MM` also works). A book counts as finished (读完) when it has a reflection; to mark a book finished before writing one, add `notes/<book>/meta.json` with `{ "finished": true }`. The 阅读画像 page is built from `profile/`, the 好书推荐 page from `recommendations/`, and the 知识树 page from `knowledge/`.
 
