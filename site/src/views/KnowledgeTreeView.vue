@@ -1,50 +1,66 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { coverUrl, findBook } from '@/data/books'
 import type { Book, KnowledgePoint, KnowledgeTree } from '@/types/book'
 import treeData from '@/generated/knowledge.json'
 
 const tree = treeData as KnowledgeTree | null
 
-// ---- Layout: a horizontal mind map, 我 on the left and the knowledge points as leaves on the right ----
+// ---- Layout: a tree growing up from the ground (y = 0, upwards is negative y) ----
+// The trunk tapers from the root up; each domain is a limb branching off the trunk, alternating
+// left and right, with the domains holding the most books nearest the root. Every book is a twig
+// on its limb, carrying its cover like a fruit, and every knowledge point is a leaf on the twig.
 
-const ROOT_X = 46
-const ROOT_R = 28
-const DOMAIN_X = 130 // left edge of the domain nodes
-const SUB_X = 330
-const BOOK_X = 478
-const BOOK_W = 214
-const BOOK_H = 52
-const POINT_X = BOOK_X + BOOK_W + 64 // where the leaves start
-const POINT_H = 30
-const GAP_BOOK = 10
-const GAP_SUB = 18
-const GAP_DOMAIN = 36
-const DOMAIN_H = 38
-const SUB_H = 30
+const TRUNK_BASE = 50 // trunk width at the root
+const TRUNK_TOP = 12
+const FIRST_LIMB = -150 // height of the lowest limb
+const LIMB_STEP = 74 // minimum height between two limbs (on opposite sides)
+const SIDE_GAP = 48 // clearance between two limbs on the same side
+const LIMB_START = 150 // distance from the trunk to the first twig
+const COVER_W = 24
+const COVER_H = 34
+const LEAF_STEP = 24
+const FIRST_LEAF = 76 // from the limb up to the first leaf
 
-interface PointNode extends KnowledgePoint {
-	key: string
+interface P {
+	x: number
 	y: number
-	w: number
 }
 
-interface BookNode {
+interface LeafNode extends KnowledgePoint {
+	key: string
+	x: number
+	y: number
+	stalk: P[]
+}
+
+interface TwigNode {
 	key: string
 	title: string
 	short: string
 	book: Book | undefined
-	y: number
-	expanded: boolean
 	reading: boolean
-	count: number
-	points: PointNode[]
-	domainIndex: number
 	path: string
+	side: number
+	x: number // where the twig leaves the limb
+	limbY: number
+	coverY: number // centre of the cover
+	twig: P[]
+	leaves: LeafNode[]
+	domainIndex: number
 }
 
-const expanded = reactive(new Set<string>())
-const selected = ref<{ type: 'book'; key: string } | { type: 'point'; key: string } | null>(null)
+interface LimbNode {
+	name: string
+	index: number // position in knowledge/知识树.md, which picks the colour
+	side: number
+	attachY: number
+	limb: P[]
+	label: P
+	labelW: number
+	top: number
+	twigs: TwigNode[]
+}
 
 // Rough text width for layout, good enough for CJK-heavy labels.
 function textWidth(text: string, size: number) {
@@ -54,180 +70,169 @@ function textWidth(text: string, size: number) {
 // "认知觉醒：开启自我改变的原动力" -> "认知觉醒"
 function shortTitle(title: string) {
 	const short = title.replace(/（.*?）/g, '').split('：')[0]
-	return short.length > 11 ? short.slice(0, 10) + '…' : short
+	return short.length > 8 ? short.slice(0, 7) + '…' : short
 }
+
+// The trunk sways a little so it does not look ruler-straight.
+const trunkX = (y: number) => 5 * Math.sin(y / 170)
 
 const layout = computed(() => {
 	if (!tree) return null
-	let cursor = 0
-	let right = POINT_X
-	const domains = tree.domains.map((domain, domainIndex) => {
-		const subdomains = domain.subdomains.map((sub) => {
-			const books: BookNode[] = sub.books.map((b) => {
-				const key = `${domain.name}/${sub.name}/${b.title}`
-				const isOpen = expanded.has(key) && b.points.length > 0
-				const rowH = isOpen ? Math.max(BOOK_H, b.points.length * POINT_H) : BOOK_H
-				const y = cursor + rowH / 2
-				cursor += rowH + GAP_BOOK
-				const book = findBook(b.title)
-				const points = isOpen
-					? b.points.map((p, i) => {
-						const w = textWidth(p.name, 13) + 34
-						right = Math.max(right, POINT_X + w)
-						return { ...p, key: `${key}/${p.name}`, y: y + (i - (b.points.length - 1) / 2) * POINT_H, w }
-					})
-					: []
+	const domains = tree.domains.map((d, index) => {
+		const books = d.subdomains.flatMap((s) => s.books.map((b) => ({ ...b, sub: s.name })))
+		return { ...d, index, books, points: books.reduce((n, b) => n + b.points.length, 0) }
+	})
+	// Most books (then most points) nearest the root.
+	const order = [...domains].sort((a, b) => b.books.length - a.books.length || b.points - a.points)
+
+	const sideTop: Record<number, number> = { [-1]: 0, [1]: 0 }
+	let lastY = FIRST_LIMB + LIMB_STEP
+	const limbs: LimbNode[] = order.map((d, i) => {
+		const side = i % 2 === 0 ? 1 : -1
+		const attachY = Math.min(lastY - LIMB_STEP, sideTop[side] - SIDE_GAP)
+		lastY = attachY
+
+		// One column per book; labels grow outwards, away from the trunk.
+		const columns = d.books.map((b) =>
+			Math.max(textWidth(shortTitle(b.title), 12) + 34, ...b.points.map((p) => textWidth(p.name, 12) + 36), 104),
+		)
+		const length = LIMB_START + columns.reduce((a, b) => a + b, 0) - 24
+		const lift = 36 + length * 0.12
+		const x0 = trunkX(attachY)
+		const limbYAt = (dx: number) => attachY - lift * Math.pow(Math.min(dx / length, 1), 1.4)
+		const limb = Array.from({ length: 33 }, (_, k) => {
+			const dx = (length * k) / 32
+			return { x: x0 + side * dx, y: limbYAt(dx) }
+		})
+
+		let offset = LIMB_START
+		const twigs: TwigNode[] = d.books.map((b, j) => {
+			const dx = offset + 8
+			offset += columns[j]
+			const x = x0 + side * dx
+			const limbY = limbYAt(dx)
+			const book = findBook(b.title)
+			const key = `${d.name}/${b.sub}/${b.title}`
+			const leaves: LeafNode[] = b.points.map((p, n) => {
+				const y = limbY - FIRST_LEAF - n * LEAF_STEP
+				const tx = x + side * (2 + n * 0.8)
 				return {
-					key,
-					title: b.title,
-					short: shortTitle(b.title),
-					book,
+					...p,
+					key: `${key}/${p.name}`,
+					x: x + side * 15,
 					y,
-					expanded: isOpen,
-					reading: book ? !book.finished : false,
-					count: b.points.length,
-					points,
-					domainIndex,
-					path: `${domain.name} › ${sub.name}`,
+					stalk: [
+						{ x: tx, y: y + 6 },
+						{ x: x + side * 8, y: y + 2 },
+					],
 				}
 			})
-			cursor += GAP_SUB - GAP_BOOK
-			return { name: sub.name, y: (books[0].y + books[books.length - 1].y) / 2, w: textWidth(sub.name, 13) + 26, books }
+			const top = leaves.length ? leaves[leaves.length - 1].y - 4 : limbY - 56
+			return {
+				key,
+				title: b.title,
+				short: shortTitle(b.title),
+				book,
+				reading: book ? !book.finished : false,
+				path: `${d.name} › ${b.sub}`,
+				side,
+				x,
+				limbY,
+				coverY: limbY - 36,
+				twig: Array.from({ length: 9 }, (_, k) => ({ x: x + side * 2 * (k / 8) * (k / 8) * 3, y: limbY + ((top - limbY) * k) / 8 })),
+				leaves,
+				domainIndex: d.index,
+			}
 		})
-		cursor += GAP_DOMAIN - GAP_SUB
-		const top = subdomains[0].books[0].y - BOOK_H / 2
-		const last = subdomains[subdomains.length - 1].books
-		const bottom = last[last.length - 1].y + BOOK_H / 2
+		const top = Math.min(...twigs.map((t) => t.twig[t.twig.length - 1].y)) - 16
+		sideTop[side] = top
 		return {
-			name: domain.name,
-			index: domainIndex,
-			y: (subdomains[0].y + subdomains[subdomains.length - 1].y) / 2,
-			w: textWidth(domain.name, 15) + 34,
+			name: d.name,
+			index: d.index,
+			side,
+			attachY,
+			limb,
+			label: { x: x0 + side * 78, y: attachY + 28 },
+			labelW: textWidth(d.name, 14) + 30,
 			top,
-			bottom,
-			subdomains,
+			twigs,
 		}
 	})
-	const height = cursor - GAP_DOMAIN
-	// 我 sits at the top left; a trunk runs down from it and every domain branches off the trunk.
-	const rootY = Math.min(domains[0].y - 60, 0)
-	const trunkEnd = domains[domains.length - 1].y - 36
-	const books = domains.flatMap((d) => d.subdomains.flatMap((s) => s.books))
-	return { domains, books, rootY, trunkEnd, bounds: { minX: 0, maxX: right + 24, minY: rootY - ROOT_R - 20, maxY: height + 24 } }
+
+	const top = Math.min(...limbs.map((l) => l.top)) - 10
+	const trunk = Array.from({ length: 41 }, (_, k) => {
+		const y = 8 + ((top + 40 - 8) * k) / 40
+		return { x: trunkX(y), y }
+	})
+	const reach = Math.max(...limbs.map((l) => Math.abs(l.limb[l.limb.length - 1].x))) + 140
+	const twigs = limbs.flatMap((l) => l.twigs)
+	return { limbs, twigs, trunk, bounds: { minX: -reach, maxX: reach, minY: top - 20, maxY: 60 } }
 })
 
 const stats = computed(() => ({
 	domains: tree?.domains.length ?? 0,
-	books: layout.value?.books.length ?? 0,
-	points: layout.value?.books.reduce((n, b) => n + b.count, 0) ?? 0,
+	books: layout.value?.twigs.length ?? 0,
+	points: layout.value?.twigs.reduce((n, t) => n + t.leaves.length, 0) ?? 0,
 }))
 
-// A tapered branch: a filled ribbon along a horizontal S-curve, w1 wide at the parent and w2 at the child.
-function branch(x1: number, y1: number, x2: number, y2: number, w1: number, w2: number) {
-	const dx = (x2 - x1) * 0.5
-	const steps = 24
+// A tapered ribbon along a polyline: w0 wide at the first point, w1 at the last.
+function ribbon(pts: P[], w0: number, w1: number) {
 	const left: string[] = []
 	const right: string[] = []
-	for (let i = 0; i <= steps; i++) {
-		const t = i / steps
-		const u = 1 - t
-		// Cubic Bezier P0=(x1,y1) P1=(x1+dx,y1) P2=(x2-dx,y2) P3=(x2,y2) and its derivative.
-		const x = u * u * u * x1 + 3 * u * u * t * (x1 + dx) + 3 * u * t * t * (x2 - dx) + t * t * t * x2
-		const y = u * u * u * y1 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y2
-		const tx = 3 * u * u * dx + 6 * u * t * (x2 - x1 - 2 * dx) + 3 * t * t * dx
-		const ty = 6 * u * t * (y2 - y1)
-		const len = Math.hypot(tx, ty) || 1
-		const half = (w1 + (w2 - w1) * t) / 2
-		left.push(`${(x - (ty / len) * half).toFixed(1)} ${(y + (tx / len) * half).toFixed(1)}`)
-		right.push(`${(x + (ty / len) * half).toFixed(1)} ${(y - (tx / len) * half).toFixed(1)}`)
-	}
+	pts.forEach((p, i) => {
+		const a = pts[Math.max(i - 1, 0)]
+		const b = pts[Math.min(i + 1, pts.length - 1)]
+		const dx = b.x - a.x
+		const dy = b.y - a.y
+		const len = Math.hypot(dx, dy) || 1
+		const half = (w0 + ((w1 - w0) * i) / (pts.length - 1)) / 2
+		left.push(`${(p.x - (dy / len) * half).toFixed(1)} ${(p.y + (dx / len) * half).toFixed(1)}`)
+		right.push(`${(p.x + (dy / len) * half).toFixed(1)} ${(p.y - (dx / len) * half).toFixed(1)}`)
+	})
 	return `M ${left.join(' L ')} L ${right.reverse().join(' L ')} Z`
 }
 
-// A domain branch leaves the trunk a little above its own row and curves out to the domain node.
-function sprout(y: number) {
-	// Both edges start inside the trunk (at least 7 wide), so the branch grows out of it rather than beside it.
-	const from = Math.max(y - 44, layout.value?.rootY ?? 0)
-	return `M ${ROOT_X - 2} ${from} C ${ROOT_X - 2} ${y - 6}, ${ROOT_X + 24} ${y - 4}, ${DOMAIN_X + 2} ${y - 3.5} L ${DOMAIN_X + 2} ${y + 3.5} C ${ROOT_X + 24} ${y + 4}, ${ROOT_X + 2} ${y + 6}, ${ROOT_X + 2} ${from} Z`
-}
+// Roots spreading over the ground.
+const roots = [-1, 1].flatMap((s) => [
+	[{ x: s * 8, y: -4 }, { x: s * 40, y: 10 }, { x: s * 86, y: 20 }, { x: s * 130, y: 26 }],
+	[{ x: s * 14, y: -2 }, { x: s * 30, y: 16 }, { x: s * 44, y: 32 }, { x: s * 56, y: 44 }],
+])
 
+const trunkWidth = (k: number, n: number) => TRUNK_BASE + ((TRUNK_TOP - TRUNK_BASE) * k) / n
 const domainColor = (i: number) => `var(--domain-${(i % 7) + 1})`
 const tint = (i: number, amount: number) => `color-mix(in srgb, ${domainColor(i)} ${amount}%, var(--c-bg))`
+// Leaves point outwards and slightly up; on the left side the shape is mirrored.
+const leafTransform = (leaf: LeafNode, side: number) => `translate(${leaf.x} ${leaf.y}) scale(${side} 1) rotate(-24)`
 
 // ---- Selection and cross-book highlighting ----
 
-const allPoints = computed(() =>
-	(tree?.domains ?? []).flatMap((d) =>
-		d.subdomains.flatMap((s) => s.books.map((b) => ({ key: `${d.name}/${s.name}/${b.title}`, title: b.title, points: b.points }))),
-	),
-)
+const selected = ref<{ type: 'book' | 'point'; key: string } | null>(null)
 
 const selectedPoint = computed(() => {
 	if (selected.value?.type !== 'point') return null
-	for (const b of allPoints.value) {
-		const p = b.points.find((p) => `${b.key}/${p.name}` === selected.value!.key)
-		if (p) return { ...p, bookKey: b.key, title: b.title }
+	for (const t of layout.value?.twigs ?? []) {
+		const leaf = t.leaves.find((l) => l.key === selected.value!.key)
+		if (leaf) return { ...leaf, twigKey: t.key, title: t.title }
 	}
 	return null
 })
 
 const selectedBook = computed(() =>
-	selected.value?.type === 'book' ? layout.value?.books.find((b) => b.key === selected.value!.key) ?? null : null,
+	selected.value?.type === 'book' ? layout.value?.twigs.find((t) => t.key === selected.value!.key) ?? null : null,
 )
 
 // Other books that share the selected point's name.
 const related = computed(() =>
 	selectedPoint.value
-		? allPoints.value.filter((b) => b.key !== selectedPoint.value!.bookKey && b.points.some((p) => p.name === selectedPoint.value!.name))
+		? (layout.value?.twigs ?? []).filter((t) => t.key !== selectedPoint.value!.twigKey && t.leaves.some((l) => l.name === selectedPoint.value!.name))
 		: [],
 )
 
-// Expanding a book makes its row taller and pushes the rows below down; keep the clicked book where it was on screen.
-async function keepInPlace(bookKey: string, change: () => void) {
-	const before = layout.value?.books.find((b) => b.key === bookKey)?.y
-	change()
-	await nextTick()
-	const book = layout.value?.books.find((b) => b.key === bookKey)
-	if (before !== undefined && book) view.y -= (book.y - before) * view.k
-	// The leaves grow to the right: pan left if they ran past the edge.
-	const el = viewport.value
-	if (el && book?.points.length) {
-		const edge = view.x + (POINT_X + Math.max(...book.points.map((p) => p.w)) + 16) * view.k
-		if (edge > el.clientWidth) view.x -= edge - el.clientWidth
-	}
+function selectRelated(twigKey: string, name: string) {
+	selected.value = { type: 'point', key: `${twigKey}/${name}` }
+	const leaf = layout.value?.twigs.find((t) => t.key === twigKey)?.leaves.find((l) => l.name === name)
+	if (leaf) centerOn(leaf.x, leaf.y)
 }
-
-function toggleBook(book: BookNode) {
-	keepInPlace(book.key, () => {
-		if (expanded.has(book.key)) {
-			expanded.delete(book.key)
-			if (selected.value?.key.startsWith(book.key)) selected.value = null
-		} else {
-			expanded.add(book.key)
-			selected.value = { type: 'book', key: book.key }
-		}
-	})
-}
-
-function selectPoint(bookKey: string, name: string) {
-	keepInPlace(bookKey, () => {
-		expanded.add(bookKey)
-		selected.value = { type: 'point', key: `${bookKey}/${name}` }
-		// Grow the related books too, so the highlighted points are visible.
-		for (const b of related.value) expanded.add(b.key)
-	})
-}
-
-function expandAll() {
-	for (const b of layout.value?.books ?? []) expanded.add(b.key)
-}
-
-function collapseAll() {
-	expanded.clear()
-	selected.value = null
-}
-
-const allExpanded = computed(() => (layout.value?.books ?? []).every((b) => b.expanded || !b.count))
 
 function pointLink(p: { tab: string | null; anchor: string | null }, title: string) {
 	return { name: 'book', params: { title }, query: p.tab ? { tab: p.tab } : {}, hash: p.anchor ? `#${p.anchor}` : '' }
@@ -237,26 +242,36 @@ function pointLink(p: { tab: string | null; anchor: string | null }, title: stri
 
 const viewport = ref<HTMLDivElement | null>(null)
 const view = reactive({ x: 0, y: 0, k: 1 })
-const MIN_K = 0.25
+const MIN_K = 0.2
 const MAX_K = 2
 
-// Fit the map's width (never above 100%, and not too small on phones), aligned to the top.
+// Show the whole tree; if that makes it too small to read, start from the root at a readable size instead.
 function fit() {
 	const el = viewport.value
 	const bounds = layout.value?.bounds
 	if (!el || !bounds) return
 	const w = bounds.maxX - bounds.minX
-	const minK = el.clientWidth < 700 ? 0.6 : MIN_K
-	view.k = Math.max(Math.min(el.clientWidth / w, 1), minK)
-	// When the map is wider than the viewport, leave room on the left for the zoom buttons.
-	view.x = w * view.k <= el.clientWidth ? (el.clientWidth - w * view.k) / 2 - bounds.minX * view.k : 48 - bounds.minX * view.k
-	view.y = -bounds.minY * view.k
+	const h = bounds.maxY - bounds.minY
+	const minK = el.clientWidth < 700 ? 0.45 : 0.42
+	const k = Math.min(el.clientWidth / w, el.clientHeight / h, 1)
+	view.k = Math.max(k, minK)
+	view.x = el.clientWidth / 2 - ((bounds.minX + bounds.maxX) / 2) * view.k
+	view.y = k >= minK ? el.clientHeight / 2 - ((bounds.minY + bounds.maxY) / 2) * view.k : el.clientHeight - 16 - bounds.maxY * view.k
+}
+
+function centerOn(x: number, y: number, k = Math.max(view.k, 0.9)) {
+	const el = viewport.value
+	if (!el) return
+	view.k = k
+	view.x = el.clientWidth / 2 - x * k
+	view.y = el.clientHeight / 2 - y * k
 }
 
 function focusDomain(index: number) {
-	const domain = layout.value?.domains[index]
-	if (!domain) return
-	view.y = 16 - (domain.top - 8) * view.k
+	const limb = layout.value?.limbs.find((l) => l.index === index)
+	if (!limb) return
+	const end = limb.limb[limb.limb.length - 1]
+	centerOn((limb.limb[0].x + end.x) / 2, (limb.attachY + limb.top) / 2, 0.8)
 }
 
 function zoomAt(factor: number, cx: number, cy: number) {
@@ -316,7 +331,7 @@ function onPointerUp(e: PointerEvent) {
 	pointers.delete(e.pointerId)
 }
 
-// A click that ended a drag should not toggle anything.
+// A click that ended a drag should not select anything.
 function clickGuard(fn: () => void) {
 	if (moved <= 4) fn()
 }
@@ -342,10 +357,13 @@ onBeforeUnmount(() => {
 					<p class="text-muted meta">
 						{{ stats.domains }} 个领域 · {{ stats.books }} 本书 · {{ stats.points }} 个知识点<template v-if="tree.updated"> · 更新于 {{ tree.updated }}</template>
 					</p>
+					<p class="text-muted note">
+						<span class="note-cover"></span>半透明的书表示还在读、尚未读完
+					</p>
 				</div>
 				<div class="legend">
-					<button v-for="d in layout.domains" :key="d.name" class="legend-item" :title="`跳到「${d.name}」`" @click="focusDomain(d.index)">
-						<span class="dot" :style="{ background: domainColor(d.index) }"></span>{{ d.name }}
+					<button v-for="d in tree.domains.map((d, i) => ({ name: d.name, i }))" :key="d.name" class="legend-item" :title="`看看「${d.name}」`" @click="focusDomain(d.i)">
+						<span class="dot" :style="{ background: domainColor(d.i) }"></span>{{ d.name }}
 					</button>
 				</div>
 			</section>
@@ -360,130 +378,114 @@ onBeforeUnmount(() => {
 			>
 				<svg class="tree" width="100%" height="100%">
 					<g :transform="`translate(${view.x} ${view.y}) scale(${view.k})`">
-						<!-- Branches taper from the root towards the leaves. -->
-						<g class="branches">
-							<template v-for="d in layout.domains" :key="d.name">
-								<path :d="sprout(d.y)" :style="{ fill: domainColor(d.index) }" />
-								<template v-for="s in d.subdomains" :key="s.name">
-									<path :d="branch(DOMAIN_X + d.w - 2, d.y, SUB_X + 2, s.y, 6, 3.5)" :style="{ fill: domainColor(d.index) }" />
-									<path
-									v-for="b in s.books"
-									:key="b.key"
-									:d="branch(SUB_X + s.w - 2, s.y, BOOK_X + 2, b.y, 3, 1.6)"
-									:style="{ fill: domainColor(d.index) }"
-									:fill-opacity="b.reading ? 0.4 : 1"
-									/>
-								</template>
-							</template>
-							<!-- Twigs from a book to its leaves -->
-							<template v-for="b in layout.books" :key="`${b.key}/twigs`">
-								<path
-								v-for="p in b.points"
-								:key="p.key"
-								:d="branch(BOOK_X + BOOK_W + 10, b.y, POINT_X, p.y, 1.6, 0.8)"
-								:style="{ fill: domainColor(b.domainIndex) }"
-								/>
-							</template>
-							<!-- Trunk: thick under 我, thinning towards the last domain; drawn last so the domain branches grow out of it. -->
-							<path class="trunk" :d="branch(ROOT_X, layout.rootY, ROOT_X, layout.trunkEnd, 16, 7)" />
-						</g>
+						<!-- Ground and roots -->
+						<ellipse class="ground" cx="0" cy="30" rx="260" ry="22" />
+						<path v-for="(r, i) in roots" :key="`root-${i}`" class="wood" :d="ribbon(r, 14, 2)" />
 
-						<!-- Root -->
-						<g class="root">
-							<circle :cx="ROOT_X" :cy="layout.rootY" :r="ROOT_R" />
-							<text :x="ROOT_X" :y="layout.rootY + 8" text-anchor="middle">我</text>
-						</g>
-
-						<!-- Domains and subdomains -->
-						<template v-for="d in layout.domains" :key="`${d.name}/label`">
-							<g class="label domain-label" @click="clickGuard(() => focusDomain(d.index))">
-								<rect
-								:x="DOMAIN_X"
-								:y="d.y - DOMAIN_H / 2"
-								:width="d.w"
-								:height="DOMAIN_H"
-								:rx="DOMAIN_H / 2"
-								:style="{ fill: tint(d.index, 18), stroke: domainColor(d.index) }"
-								/>
-								<text :x="DOMAIN_X + d.w / 2" :y="d.y + 5" text-anchor="middle">{{ d.name }}</text>
-							</g>
-							<g v-for="s in d.subdomains" :key="s.name" class="label sub-label">
-								<rect
-								:x="SUB_X"
-								:y="s.y - SUB_H / 2"
-								:width="s.w"
-								:height="SUB_H"
-								:rx="SUB_H / 2"
-								:style="{ fill: tint(d.index, 8), stroke: domainColor(d.index) }"
-								/>
-								<text :x="SUB_X + s.w / 2" :y="s.y + 5" text-anchor="middle">{{ s.name }}</text>
-							</g>
+						<!-- Limbs (one per domain) and the twigs carrying each book -->
+						<template v-for="l in layout.limbs" :key="l.name">
+							<path :d="ribbon(l.limb, 15, 3)" :style="{ fill: domainColor(l.index) }" />
+							<template v-for="t in l.twigs" :key="t.key">
+								<path :d="ribbon(t.twig, 3.2, 1)" :style="{ fill: domainColor(l.index) }" :fill-opacity="t.reading ? 0.45 : 1" />
+								<path v-for="leaf in t.leaves" :key="`${leaf.key}/stalk`" :d="ribbon(leaf.stalk, 1.4, 0.8)" :style="{ fill: domainColor(l.index) }" />
+							</template>
 						</template>
 
-						<!-- Books -->
-						<g
-						v-for="b in layout.books"
-						:key="`${b.key}/node`"
-						:class="['book', { reading: b.reading, active: selectedBook?.key === b.key, open: b.expanded }]"
-						role="button"
-						:aria-label="`《${b.title}》${b.expanded ? '，收起知识点' : '，展开知识点'}`"
-						@click="clickGuard(() => toggleBook(b))"
-						>
+						<!-- Trunk, drawn over the limb bases so they grow out of it -->
+						<path class="wood" :d="ribbon(layout.trunk, TRUNK_BASE, TRUNK_TOP)" />
+						<path
+						v-for="(p, k) in layout.trunk.filter((_, k) => k % 6 === 3 && k < 34)"
+						:key="`bark-${k}`"
+						class="bark"
+						:d="`M ${p.x - trunkWidth(k * 6 + 3, 40) * 0.18} ${p.y + 10} q 3 -12 0 -24`"
+						/>
+
+						<!-- Domain labels, just under each limb near the trunk -->
+						<g v-for="l in layout.limbs" :key="`${l.name}/label`" class="domain-label" @click="clickGuard(() => focusDomain(l.index))">
 							<rect
-							class="card"
-							:x="BOOK_X"
-							:y="b.y - BOOK_H / 2"
-							:width="BOOK_W"
-							:height="BOOK_H"
-							rx="10"
-							:style="{ fill: tint(b.domainIndex, 6), '--accent': domainColor(b.domainIndex) }"
+							:x="l.label.x - l.labelW / 2"
+							:y="l.label.y - 15"
+							:width="l.labelW"
+							height="30"
+							rx="15"
+							:style="{ fill: tint(l.index, 18), stroke: domainColor(l.index) }"
 							/>
-							<image
-							v-if="b.book && coverUrl(b.book)"
-							:href="coverUrl(b.book)!"
-							:x="BOOK_X + 8"
-							:y="b.y - 20"
-							width="30"
-							height="40"
-							preserveAspectRatio="xMidYMid slice"
-							/>
-							<text :x="BOOK_X + 48" :y="b.y - 3" class="book-title">{{ b.short }}</text>
-							<text :x="BOOK_X + 48" :y="b.y + 14" class="book-meta">
-								{{ b.reading ? '在读 · ' : '' }}{{ b.count }} 个知识点
-							</text>
-							<!-- Expand / collapse knob on the right edge -->
-							<g v-if="b.count" class="knob">
-								<circle :cx="BOOK_X + BOOK_W" :cy="b.y" r="10" :style="{ stroke: domainColor(b.domainIndex) }" />
-								<text :x="BOOK_X + BOOK_W" :y="b.y + 4" text-anchor="middle">{{ b.expanded ? '−' : '+' }}</text>
-							</g>
+							<text :x="l.label.x" :y="l.label.y + 5" text-anchor="middle">{{ l.name }}</text>
 						</g>
 
-						<!-- Leaves: the knowledge points -->
-						<template v-for="b in layout.books" :key="`${b.key}/points`">
+						<!-- Books: a cover on each twig, title beside it -->
+						<g
+						v-for="t in layout.twigs"
+						:key="`${t.key}/book`"
+						:class="['book', { reading: t.reading, active: selectedBook?.key === t.key }]"
+						role="button"
+						:aria-label="`《${t.title}》`"
+						@click="clickGuard(() => (selected = { type: 'book', key: t.key }))"
+						>
+							<rect
+							class="hit"
+							:x="t.side > 0 ? t.x - COVER_W / 2 - 4 : t.x - COVER_W / 2 - 10 - textWidth(t.short, 12) - 4"
+							:y="t.coverY - COVER_H / 2 - 4"
+							:width="COVER_W + 18 + textWidth(t.short, 12)"
+							:height="COVER_H + 8"
+							rx="6"
+							/>
+							<image
+							v-if="t.book && coverUrl(t.book)"
+							:href="coverUrl(t.book)!"
+							:x="t.x - COVER_W / 2"
+							:y="t.coverY - COVER_H / 2"
+							:width="COVER_W"
+							:height="COVER_H"
+							preserveAspectRatio="xMidYMid slice"
+							/>
+							<rect
+							class="cover-frame"
+							:x="t.x - COVER_W / 2"
+							:y="t.coverY - COVER_H / 2"
+							:width="COVER_W"
+							:height="COVER_H"
+							rx="2"
+							:style="{ stroke: domainColor(t.domainIndex) }"
+							/>
+							<text
+							:x="t.x + t.side * (COVER_W / 2 + 6)"
+							:y="t.coverY + 4"
+							:text-anchor="t.side > 0 ? 'start' : 'end'"
+							class="book-title"
+							>
+								{{ t.short }}
+							</text>
+						</g>
+
+						<!-- Leaves: one per knowledge point -->
+						<template v-for="t in layout.twigs" :key="`${t.key}/leaves`">
 							<g
-							v-for="p in b.points"
-							:key="p.key"
+							v-for="leaf in t.leaves"
+							:key="leaf.key"
 							:class="[
-								'point',
+								'leaf',
 								{
-									selected: selectedPoint && p.key === selected?.key,
-									related: selectedPoint && p.key !== selected?.key && p.name === selectedPoint.name,
+									selected: selectedPoint && leaf.key === selected?.key,
+									related: selectedPoint && leaf.key !== selected?.key && leaf.name === selectedPoint.name,
 								},
 							]"
 							role="button"
-							:aria-label="`知识点：${p.name}`"
-							@click.stop="clickGuard(() => selectPoint(b.key, p.name))"
+							:aria-label="`知识点：${leaf.name}`"
+							@click="clickGuard(() => (selected = { type: 'point', key: leaf.key }))"
 							>
-								<rect class="hit" :x="POINT_X - 4" :y="p.y - 12" :width="p.w" height="24" rx="12" :style="{ '--accent': domainColor(b.domainIndex) }" />
-								<!-- A small leaf with its midrib -->
-								<path
-								class="leaf"
-								:transform="`translate(${POINT_X + 8} ${p.y}) rotate(-18)`"
-								d="M -8 0 Q 0 -7 8 0 Q 0 7 -8 0 Z"
-								:style="{ fill: domainColor(b.domainIndex) }"
+								<rect
+								class="hit"
+								:x="t.side > 0 ? leaf.x - 12 : leaf.x - 18 - textWidth(leaf.name, 12)"
+								:y="leaf.y - 11"
+								:width="textWidth(leaf.name, 12) + 30"
+								height="22"
+								rx="11"
+								:style="{ '--accent': domainColor(t.domainIndex) }"
 								/>
-								<path class="midrib" :transform="`translate(${POINT_X + 8} ${p.y}) rotate(-18)`" d="M -6 0 L 6 0" />
-								<text :x="POINT_X + 22" :y="p.y + 4.5">{{ p.name }}</text>
+								<path class="blade" :transform="leafTransform(leaf, t.side)" d="M -9 0 C -4 -7, 5 -7, 10 0 C 5 7, -4 7, -9 0 Z" :style="{ fill: domainColor(t.domainIndex) }" />
+								<path class="vein" :transform="leafTransform(leaf, t.side)" d="M -7 0 L 8 0" />
+								<text :x="leaf.x + t.side * 14" :y="leaf.y + 4" :text-anchor="t.side > 0 ? 'start' : 'end'">{{ leaf.name }}</text>
 							</g>
 						</template>
 					</g>
@@ -492,19 +494,12 @@ onBeforeUnmount(() => {
 				<div class="controls">
 					<v-btn icon="mdi-plus" size="small" variant="tonal" title="放大" @click="zoomButton(1.25)"></v-btn>
 					<v-btn icon="mdi-minus" size="small" variant="tonal" title="缩小" @click="zoomButton(0.8)"></v-btn>
-					<v-btn icon="mdi-fit-to-screen-outline" size="small" variant="tonal" title="适应宽度" @click="fit()"></v-btn>
-					<v-btn
-					:icon="allExpanded ? 'mdi-arrow-collapse-horizontal' : 'mdi-arrow-expand-horizontal'"
-					size="small"
-					variant="tonal"
-					:title="allExpanded ? '全部收起' : '全部展开'"
-					@click="allExpanded ? collapseAll() : expandAll()"
-					></v-btn>
+					<v-btn icon="mdi-fit-to-screen-outline" size="small" variant="tonal" title="看全貌" @click="fit()"></v-btn>
 				</div>
 
-				<p class="hint text-muted">拖动或滚轮浏览 · Ctrl + 滚轮或双指缩放 · 点击书本展开知识点</p>
+				<p class="hint text-muted">拖动或滚轮浏览 · Ctrl + 滚轮或双指缩放 · 点击叶子查看知识点</p>
 
-				<!-- Detail card for the selected point or book -->
+				<!-- Detail card for the selected leaf or book -->
 				<aside v-if="selectedPoint || selectedBook" class="detail" @pointerdown.stop>
 					<v-btn icon="mdi-close" size="x-small" variant="text" class="close" title="关闭" @click="selected = null"></v-btn>
 					<template v-if="selectedPoint">
@@ -516,14 +511,14 @@ onBeforeUnmount(() => {
 						</router-link>
 						<div v-if="related.length" class="detail-related">
 							<span class="text-muted">也出现在：</span>
-							<a v-for="r in related" :key="r.key" href="#" @click.prevent="selectPoint(r.key, selectedPoint.name)">《{{ r.title }}》</a>
+							<a v-for="r in related" :key="r.key" href="#" @click.prevent="selectRelated(r.key, selectedPoint.name)">《{{ r.title }}》</a>
 						</div>
 					</template>
 					<template v-else-if="selectedBook">
 						<div class="detail-kicker text-muted">{{ selectedBook.path }}</div>
 						<h2 class="detail-title">《{{ selectedBook.title }}》</h2>
 						<p class="detail-text text-muted">
-							{{ selectedBook.count }} 个知识点<template v-if="selectedBook.reading"> · 在读</template>
+							{{ selectedBook.leaves.length }} 个知识点<template v-if="selectedBook.reading"> · 在读</template>
 						</p>
 						<router-link :to="{ name: 'book', params: { title: selectedBook.title } }" class="detail-link">
 							打开书籍页 <v-icon icon="mdi-arrow-right" size="16"></v-icon>
@@ -543,10 +538,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .knowledge {
+	max-width: none;
 	padding-bottom: 24px;
 }
 
 .head {
+	max-width: 1100px;
 	margin: 0 auto 12px;
 	display: flex;
 	flex-wrap: wrap;
@@ -564,6 +561,24 @@ onBeforeUnmount(() => {
 .meta {
 	font-size: 14px;
 	margin-top: 4px;
+}
+
+.note {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	margin-top: 2px;
+}
+
+/* A tiny faded book cover, matching how books still being read look on the tree. */
+.note-cover {
+	width: 10px;
+	height: 14px;
+	border-radius: 1px;
+	border: 1.5px solid var(--c-text-muted);
+	background: var(--c-bg-soft);
+	opacity: 0.5;
 }
 
 .legend {
@@ -596,11 +611,11 @@ onBeforeUnmount(() => {
 .viewport {
 	position: relative;
 	height: calc(100vh - 200px);
-	min-height: 480px;
+	min-height: 520px;
 	border: 1px solid var(--c-card-border);
 	border-radius: 12px;
 	overflow: hidden;
-	background: var(--c-bg);
+	background: linear-gradient(to bottom, var(--c-quote-bg), var(--c-bg) 70%);
 	touch-action: none;
 	cursor: grab;
 	user-select: none;
@@ -614,122 +629,98 @@ onBeforeUnmount(() => {
 	display: block;
 }
 
-.trunk {
+.ground {
+	fill: var(--c-bg-soft);
+}
+
+.wood {
 	fill: var(--c-trunk);
 }
 
-.root circle {
-	fill: var(--c-text);
-	filter: drop-shadow(0 2px 6px var(--c-shadow));
-}
-
-.root text {
-	font-size: 22px;
-	font-weight: bold;
-	fill: var(--c-bg);
-}
-
-.label rect {
-	stroke-width: 2;
-}
-
-.label text {
-	fill: var(--c-text);
+.bark {
+	fill: none;
+	stroke: var(--c-bg);
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	opacity: 0.25;
 }
 
 .domain-label {
 	cursor: pointer;
 }
 
+.domain-label rect {
+	stroke-width: 2;
+}
+
 .domain-label text {
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: bold;
-}
-
-.sub-label rect {
-	stroke-width: 1.5;
-}
-
-.sub-label text {
-	font-size: 13px;
+	fill: var(--c-text);
 }
 
 .book {
 	cursor: pointer;
 }
 
-.book .card {
-	stroke: transparent;
-	stroke-width: 1.5;
-	transition: stroke 0.15s;
+.book .hit {
+	fill: transparent;
 }
 
-.book:hover .card,
-.book.active .card,
-.book.open .card {
-	stroke: var(--accent);
+.book:hover .hit,
+.book.active .hit {
+	fill: var(--c-link-hover-bg);
+}
+
+.book .cover-frame {
+	fill: none;
+	stroke-width: 1.5;
 }
 
 .book-title {
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: bold;
 	fill: var(--c-text);
-}
-
-.book-meta {
-	font-size: 11px;
-	fill: var(--c-text-muted);
 }
 
 .book.reading image,
 .book.reading .book-title {
-	opacity: 0.55;
+	opacity: 0.5;
 }
 
-.knob circle {
-	fill: var(--c-bg);
-	stroke-width: 1.5;
-}
-
-.knob text {
-	font-size: 14px;
-	font-weight: bold;
-	fill: var(--c-text);
-}
-
-.point {
+.leaf {
 	cursor: pointer;
 }
 
-.point .hit {
+.leaf .hit {
 	fill: transparent;
 	stroke: transparent;
 	stroke-width: 1.5;
 }
 
-.point:hover .hit {
+.leaf:hover .hit {
 	fill: var(--c-bg-soft);
 }
 
-.point.selected .hit {
+.leaf.selected .hit {
 	fill: var(--c-quote-bg);
 	stroke: var(--accent);
 }
 
-.point.related .hit {
+.leaf.related .hit {
 	fill: var(--c-idea-bg);
 	stroke: var(--accent);
 	stroke-dasharray: 4 3;
 }
 
-.midrib {
+.vein {
 	stroke: var(--c-bg);
 	stroke-width: 1;
-	opacity: 0.7;
+	opacity: 0.6;
 }
 
-.point text {
-	font-size: 13px;
+.leaf text {
+	font-size: 12px;
 	fill: var(--c-text);
 }
 
