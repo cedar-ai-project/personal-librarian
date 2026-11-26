@@ -1,6 +1,7 @@
 ---
 name: recommend-books
 description: 根据用户的阅读画像、划线与想法、读书心得和近期需求，精选 10–15 本好书并用微信读书核实，按推荐动机分组写成一期书单，保存到 recommendations/<YYYY-MM>.md。当用户要求"推荐书、好书推荐、出一期书单、接下来读什么"时使用。
+license: PolyForm-Noncommercial-1.0.0 (noncommercial use only; see LICENSE and NOTICE.md in https://github.com/cedar-ai-project/personal-librarian)
 ---
 
 # 好书推荐

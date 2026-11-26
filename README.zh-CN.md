@@ -109,4 +109,10 @@ npm run build && npm run preview   # 或先执行一次 `npm run font`，再 `np
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)
+本项目**不允许**用于商业目的。
+
+- **代码**（`site/`、`skills/` 及其他软件部分）：[PolyForm Noncommercial License 1.0.0](LICENSE)——可免费用于个人学习、研究等非商业用途，任何商业使用都需取得作者书面许可。
+- **原创文字**（读书心得、阅读画像、知识树、好书推荐，以及笔记中作者本人的想法）：[CC BY-NC-ND 4.0](LICENSE-CONTENT)——转载须署名，不得商用，不得修改。
+- **书中摘录与书籍封面**不在授权范围内，版权归原作者、译者和出版社所有。
+
+各文件具体适用的条款见 [NOTICE.md](NOTICE.md)。以 Apache License 2.0 发布的早期版本仍适用 Apache 2.0。

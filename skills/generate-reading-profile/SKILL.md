@@ -1,6 +1,7 @@
 ---
 name: generate-reading-profile
 description: 根据微信读书阅读统计、划线与想法和读书心得，生成用户的个人阅读画像，保存到 profile/阅读画像.md，并刷新 profile/reading-stats.json 统计快照。当用户要求"生成/更新阅读画像、读书画像、阅读偏好分析、刷新阅读数据"时使用。
+license: PolyForm-Noncommercial-1.0.0 (noncommercial use only; see LICENSE and NOTICE.md in https://github.com/cedar-ai-project/personal-librarian)
 ---
 
 # 阅读画像生成器

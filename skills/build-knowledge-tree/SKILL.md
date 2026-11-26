@@ -1,6 +1,7 @@
 ---
 name: build-knowledge-tree
 description: 把仓库中所有读过的书按知识领域分类，并从划线与想法、读书心得中提取每本书的核心知识点，生成或更新知识树 knowledge/知识树.md（领域 → 子领域 → 书 → 知识点）。当用户要求"生成/更新知识树、给新书归类、整理读过的书的知识体系"时使用。
+license: PolyForm-Noncommercial-1.0.0 (noncommercial use only; see LICENSE and NOTICE.md in https://github.com/cedar-ai-project/personal-librarian)
 ---
 
 # 知识树生成器

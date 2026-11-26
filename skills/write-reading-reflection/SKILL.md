@@ -1,6 +1,7 @@
 ---
 name: write-reading-reflection
 description: 根据读书笔记（划线与想法）和个人口述感悟，自动生成符合用户个人风格的读书心得，保存到 reflections/<书名>/读书心得.md。当用户要求"写读书心得/读书笔记/阅读反思/整理感悟"时使用。微信读书的书先导出划线与想法，纸质书由用户提供手打的划线与想法文件。
+license: PolyForm-Noncommercial-1.0.0 (noncommercial use only; see LICENSE and NOTICE.md in https://github.com/cedar-ai-project/personal-librarian)
 ---
 
 # 读书心得生成器

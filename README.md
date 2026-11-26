@@ -109,7 +109,13 @@ npm run build && npm run preview   # or `npm run font` once, then `npm run dev`
 
 ## License
 
-[Apache License 2.0](LICENSE)
+This project is **not** licensed for commercial use.
+
+- **Code** (`site/`, `skills/`, and other software): [PolyForm Noncommercial License 1.0.0](LICENSE) — free for personal, study, and other noncommercial use; any commercial use requires the author's written permission.
+- **Original writing** (reading reflections, reading profile, knowledge tree, recommendations, and the author's own ideas in the notes): [CC BY-NC-ND 4.0](LICENSE-CONTENT) — share with attribution, no commercial use, no derivatives.
+- **Book excerpts and covers** are not licensed: their copyright belongs to the original authors, translators, and publishers.
+
+See [NOTICE.md](NOTICE.md) for exactly which files fall under which terms. Earlier versions released under the Apache License 2.0 remain under Apache 2.0.
 
 ## Star History
 
